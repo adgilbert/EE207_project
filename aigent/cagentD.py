@@ -9,8 +9,8 @@ class AgentD(Agent):
     The extended Agent class with specific heuritics
     """
 
-def decisionLoop(self):
-    try:
+    def decisionLoop(self):
+        # try:
         self.find_ball()
         if self.wm.get_distance_to_point(self.own_goal_pos) > 15:
             # print "overstepping"
@@ -34,10 +34,10 @@ def decisionLoop(self):
             # return self.move_to_enemy_goalpos()
         else:
             return self.defaultaction()
-    except:
-        # print "exceptions thrown, using fallback"
-        self.defaultaction()
-        
+        # except:
+        #     # print "exceptions thrown, using fallback"
+        #     self.defaultaction()
+            
 
 
 # by role: striker, defender
