@@ -8,13 +8,15 @@ import multiprocessing as mp
 import os
 
 # import agent types (positions)
-from aigent.soccerpy.agent import Agent as A0
+from soccerpy.agent import Agent as A0
 # strikers
-from aigent.agent_1 import Agent as A1
-# defenders
-from aigent.agent_2 import Agent as A2
+# from agent_1 import Agent as A1
+# # defenders
+# from agent_2 import Agent as A2
 # goalie
-from aigent.agent_3 import Agent as A3
+from cagentG import AgentG as CA_G
+from cagentO import AgentO as CA_O
+from cagentD import AgentD as CA_D
 
 # set team
 TEAM_NAME = 'Keng'
@@ -25,14 +27,14 @@ if __name__ == "__main__":
 
     # return type of agent: midfield, striker etc.
     def agent_type(position):
-    	return {
-            2: A2,
-            3: A3,
-            4: A2,
-            6: A2,
-            7: A2,
-    		8: A2,
-    	}.get(position, A1)
+        return {
+            2: CA_D,
+            3: CA_G,
+            4: CA_D,
+            6: CA_D,
+            7: CA_D,
+            8: CA_D,
+        }.get(position, CA_O)
 
     # spawn an agent of team_name, with position
     def spawn_agent(team_name, position):
@@ -47,7 +49,8 @@ if __name__ == "__main__":
         # we wait until we're killed
         while 1:
             # we sleep for a good while since we can only exit if terminated.
-            time.sleep(1)
+            pass 
+            # time.sleep(1)
 
     # spawn all agents as seperate processes for maximum processing efficiency
     agentthreads = []
@@ -67,7 +70,8 @@ if __name__ == "__main__":
     # wait until killed to terminate agent processes
     try:
         while 1:
-            time.sleep(0.05)
+            pass
+            # time.sleep(0.05)
     except KeyboardInterrupt:
         print
         print "Killing agent threads..."
