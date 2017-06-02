@@ -8,15 +8,15 @@ import multiprocessing as mp
 import os
 
 # import agent types (positions)
-from soccerpy.agent import Agent as A0
+from aigent.soccerpy.agent import Agent as A0
 # strikers
 # from agent_1 import Agent as A1
 # # defenders
 # from agent_2 import Agent as A2
 # goalie
-from cagentG import AgentG as CA_G
-from cagentO import AgentO as CA_O
-from cagentD import AgentD as CA_D
+from aigent.cagentG import AgentG as CA_G
+from aigent.cagentO import AgentO as CA_O
+from aigent.cagentD import AgentD as CA_D
 
 # set team
 TEAM_NAME = 'Keng'

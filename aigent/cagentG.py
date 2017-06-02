@@ -1,7 +1,7 @@
 import random
 from soccerpy.agent import Agent as baseAgent
 from soccerpy.world_model import WorldModel
-
+from cagent_main import Agent
 
 
 class AgentG(Agent):

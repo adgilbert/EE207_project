@@ -5,8 +5,8 @@ from soccerpy.world_model import WorldModel
 
 
 class Agent(baseAgent):
-	"""
-    Extended agent class with all actions defined.
+    """
+    The extended Agent class with specific heuritics
     """
 
     def think(self):
@@ -18,7 +18,6 @@ class Agent(baseAgent):
         # DEBUG:  tells us if a thread dies
         if not self.__think_thread.is_alive() or not self.__msg_thread.is_alive():
             raise Exception("A thread died.")
-
 
         # take places on the field by uniform number
         if not self.in_kick_off_formation:
@@ -70,7 +69,53 @@ class Agent(baseAgent):
             # The main decision loop
             return self.decisionLoop()
 
+        # # kick off!
+        # if self.wm.is_before_kick_off():
+        #     # player 9 takes the kick off
+        #     if self.wm.uniform_number == 9:
+        #         if self.wm.is_ball_kickable():
+        #             # kick with 100% extra effort at enemy goal
+        #             self.wm.kick_to(self.enemy_goal_pos, 1.0)
+        #         else:
+        #             # move towards ball
+        #             if self.wm.ball is not None:
+        #                 if (self.wm.ball.direction is not None and
+        #                     -7 <= self.wm.ball.direction <= 7):
+        #                     self.wm.ah.dash(50)
+        #             else:
+        #                 self.wm.turn_body_to_point((0, 0))
 
+        #         # turn to ball if we can see it, else face the enemy goal
+        #         if self.wm.ball is not None:
+        #             self.wm.turn_neck_to_object(self.wm.ball)
+
+        #             return
+
+        # # attack!
+        # else:
+            # # find the ball
+            # if self.wm.ball is None or self.wm.ball.direction is None:
+            #     self.wm.ah.turn(30)
+
+            #     return
+
+            # # kick it at the enemy goal
+            # if self.wm.is_ball_kickable():
+            #     self.wm.kick_to(self.enemy_goal_pos, 1.0)
+            #     return
+            # else:
+            #     # move towards ball
+            #     if -7 <= self.wm.ball.direction <= 7:
+            #         self.wm.ah.dash(65)
+            #     else:
+            #         # face ball
+            #         self.wm.ah.turn(self.wm.ball.direction / 2)
+
+            #         return
+
+
+
+    # Heuristics begin
 
     # check if ball is close to self
     def ball_close(self):
@@ -108,6 +153,20 @@ class Agent(baseAgent):
 
             return
 
+        # # kick it at the enemy goal
+        # if self.wm.is_ball_kickable():
+        #     self.wm.kick_to(self.enemy_goal_pos, 1.0)
+        #     return
+        # else:
+        #     # move towards ball
+        #     if -7 <= self.wm.ball.direction <= 7:
+        #         self.wm.ah.dash(65)
+        #     else:
+        #         # face ball
+        #         self.wm.ah.turn(self.wm.ball.direction / 2)
+
+        #     return
+
     # look around randomly
     def defaultaction(self):
         # print "def"
@@ -123,11 +182,7 @@ class Agent(baseAgent):
                     if self.wm.ball is not None:
                         if (self.wm.ball.direction is not None and
                                 -7 <= self.wm.ball.direction <= 7):
-                            if self.wm.get_distance_to_point(self.own_goal_pos) < 40:
-                                self.wm.ah.dash(50)
-                            else:
-                                self.wm.turn_body_to_point(self.own_goal_pos)
-                                self.wm.ah.dash(50)
+                            self.wm.ah.dash(50)
                         else:
                             self.wm.turn_body_to_point((0, 0))
 
@@ -152,11 +207,7 @@ class Agent(baseAgent):
             else:
                 # move towards ball
                 if -7 <= self.wm.ball.direction <= 7:
-                    if self.wm.get_distance_to_point(self.own_goal_pos) < 40:
-                        self.wm.ah.dash(65)
-                    else:
-                        self.wm.turn_body_to_point(self.own_goal_pos)
-                        self.wm.ah.dash(50)
+                    self.wm.ah.dash(65)
                 else:
                     # face ball
                     self.wm.ah.turn(self.wm.ball.direction / 2)
@@ -213,11 +264,7 @@ class Agent(baseAgent):
         self.wm.kick_to(self.enemy_goal_pos, 1.0)
         self.wm.turn_body_to_point(self.enemy_goal_pos)
         self.wm.align_neck_with_body()
-        if self.wm.get_distance_to_point(self.own_goal_pos) < 40:
-            self.wm.ah.dash(50)
-        else:
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.ah.dash(50)
+        self.wm.ah.dash(50)
         return
 
     # if enemy has the ball, and not too far move towards it
@@ -230,11 +277,7 @@ class Agent(baseAgent):
     # move to ball, if enemy owns it
     def move_to_ball(self):
         print "move_to_ball"
-        if self.wm.get_distance_to_point(self.own_goal_pos) < 40:
-            self.wm.ah.dash(60)
-        else:
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.ah.dash(50)
+        self.wm.ah.dash(60)
         return 
 
     # defensive, when ball isn't ours, and has entered our side of the field
@@ -262,11 +305,7 @@ class Agent(baseAgent):
             self.wm.turn_body_to_point(self.own_goal_pos)
 
         self.wm.align_neck_with_body()
-        if self.wm.get_distance_to_point(self.own_goal_pos) < 40:
-            self.wm.ah.dash(80)
-        else:
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.ah.dash(50)
+        self.wm.ah.dash(80)
         return
 
     # when our team has ball, and self is not close enough to goalpos. advance to enemy goalpos
@@ -281,16 +320,32 @@ class Agent(baseAgent):
             self.wm.kick_to(self.enemy_goal_pos, 1.0)
         self.wm.turn_body_to_point(self.enemy_goal_pos)
         self.wm.align_neck_with_body()
-        if self.wm.get_distance_to_point(self.own_goal_pos) < 40:
-            self.wm.ah.dash(70)
-        else:
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.ah.dash(50)
+        self.wm.ah.dash(70)
         return
 
-    ''' all subclasses require a decisionLoop function'''
+
     # def decisionLoop(self):
-    #         ''' this should be overwrittin in sub classes''' 
+    #     try:
+    #         self.find_ball()
+    #         # if should shoot, full power
+    #         if self.shall_shoot():
+    #             return self.shoot()
+    #         # else shd pass to closest teammate
+    #         elif self.shall_pass():
+    #             return self.passes()
+    #         # else shd dribble
+    #         elif self.shall_dribble():
+    #             return self.dribble()
+    #         elif self.shall_move_to_ball():
+    #             return self.move_to_ball()
+    #         elif self.shall_move_to_defend():
+    #             return self.move_to_defend()
+    #         elif self.shall_move_to_enemy_goalpos():
+    #             return self.move_to_enemy_goalpos()
+    #         else:
+    #             return self.defaultaction()
+    #     except:
+    #         # print "exceptions thrown, using fallback"
     #         self.defaultaction()
         
 
@@ -346,4 +401,3 @@ class Agent(baseAgent):
 # va = 1
 # print None or va[0]
 # print random.randrange(-30,30)
-
