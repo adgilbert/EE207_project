@@ -9,6 +9,14 @@ import sp_exceptions
 import handler
 from world_model import WorldModel
 
+# nengo stuff
+import numpy as np
+import time
+from numpy.linalg import svd, norm, pinv
+import nengo
+from numpy import pi
+
+
 class Agent(object):
 
     def __init__(self, playertype):
@@ -45,7 +53,10 @@ class Agent(object):
         # adding goal post markers
         self.enemy_goal_pos = None
         self.own_goal_pos = None
-        self.last_command = None
+        self.last_action = None
+        self.last_balldir = None
+
+        self.decodes = self.init_turn_network()
 
         if playertype in ['off', 'def', 'goalie']:
             self.playertype = playertype
@@ -53,7 +64,39 @@ class Agent(object):
             print('player type must be one of off, def, goalie')
             return
 
+    def init_turn_network(self):
+        # Use the following in your simulation
+        T = 1.               # duration of simulation
+        tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
+        in_fun = lambda t: t # input function to your network
+        N = 500  # Number of neurons in each Ensemble
 
+        model = nengo.Network()
+        with model:
+            stim = nengo.Node(in_fun)
+            ensA = nengo.Ensemble(N, dimensions=1)
+            ensB = nengo.Ensemble(N, dimensions=1)
+            
+            nengo.Connection(stim, ensA)
+            nengo.Connection(ensA, ensB, function=lambda x: 0.5*np.sin(pi*x))
+            
+            stim_p = nengo.Probe(stim)
+            ensA_p = nengo.Probe(ensA, synapse=.01)
+            ensB_p = nengo.Probe(ensB, synapse=.01)
+            ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
+            ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
+   
+        sim = nengo.Simulator(model, dt=.001)
+        sim.run(T, progress_bar=False)
+         
+        decodes = sim.data[ensB_p]
+        return decodes
+
+    def ball_to_turn(self, angle, decodes):
+        ''' interpolate decodes to the correct value'''
+
+        angle_idx =  int(angle*1000/360)
+        return decodes[angle_idx]*360
 
     def connect(self, host, port, teamname, version=11):
         """

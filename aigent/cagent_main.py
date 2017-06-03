@@ -1,6 +1,15 @@
 import random
 from soccerpy.agent import Agent as baseAgent
 from soccerpy.world_model import WorldModel
+import numpy as np
+import time
+import matplotlib.pyplot as plt
+from numpy.linalg import svd, norm, pinv
+import nengo
+from numpy import pi
+from nengo.utils.ensemble import tuning_curves
+
+
 
 
 
@@ -209,6 +218,8 @@ class Agent(baseAgent):
         elif self.playertype == 'off':
             # find the ball
             if self.wm.ball is None or self.wm.ball.direction is None:
+                print('turning')
+                self.last_action='turn'
                 self.wm.ah.turn(30)
 
                 return
@@ -224,10 +235,13 @@ class Agent(baseAgent):
             else:
                 # move towards ball
                 if -7 <= self.wm.ball.direction <= 7:
+                    print('moving to ball')
                     self.wm.ah.dash(65)
                 else:
                     # face ball
-                    self.wm.ah.turn(self.wm.ball.direction / 2)
+                    print('facing ball')
+                    # self.wm.ah.turn(self.wm.ball.direction / 2)
+                    self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
 
                 return
         # defend
@@ -237,6 +251,7 @@ class Agent(baseAgent):
                 self.wm.ah.turn(30)
                 return
             if self.shall_move_to_defend():
+                print('moving to defend')
                 self.move_to_defend()
                 return
             else:
