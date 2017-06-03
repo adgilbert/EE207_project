@@ -150,7 +150,7 @@ class Agent(baseAgent):
         while attempts <20:
             if self.wm.ball is not None and self.wm.ball.direction is not None:
                 return True
-            self.wm.ah.turn(30)
+            self.wm.ah.turn(10)
             attempts += 1
             # if not -7 <= self.wm.ball.direction <= 7:
                 # self.wm.ah.turn(self.wm.ball.direction / 2)
