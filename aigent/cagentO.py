@@ -16,25 +16,35 @@ class AgentO(Agent):
             if self.find_ball():
                 # if should shoot, full power
                 if self.shall_shoot():
+                    print('shooting')
                     return self.shoot()
                 # else shd pass to closest teammate
                 elif self.shall_pass():
+                    print('passing')
                     return self.passes()
                 # else shd dribble
                 elif self.shall_dribble():
+                    print('dribbling')
                     return self.dribble()
                 elif self.shall_move_to_ball():
+                    print('moving to ball')
                     return self.move_to_ball()
                 elif self.shall_move_to_defend():
+                    print('moving to defend')
                     return self.move_to_defend()
                 elif self.shall_move_to_enemy_goalpos():
+                    print('moving to enemy goal')
                     return self.move_to_enemy_goalpos()
                 else:
+                    print('using default')
                     return self.defaultaction()
             else:
                 print("O couldnt find ball after 20 tries")
                 return self.defaultaction()
-        except:
+        except Exception as inst:
+            print type(inst)     # the exception instance
+            print inst.args      # arguments stored in .args
+            print inst           # __str__ allows args to be printed directly
             print "exceptions thrown, using fallback"
             self.defaultaction()
 
