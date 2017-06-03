@@ -159,7 +159,7 @@ class Agent(baseAgent):
     def find_ball(self):
         # find the ball
         if self.wm.ball is not None and self.wm.ball.direction is not None:
-            print('FOUND BALL. atmpts = {}, dir= {}'.format(attempts, self.wm.ball.direction))
+            print('FOUND BALL, dir= {}'.format(self.wm.ball.direction))
             if not -7 <= self.wm.ball.direction <= 7:
                 self.wm.ah.turn(self.wm.ball.direction/2)
             return True
