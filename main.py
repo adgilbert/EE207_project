@@ -23,7 +23,7 @@ if len(sys.argv) < 2:
     print("ERROR: Usage: \n python main.py [TEAM NAME]")
     sys.exit()
 TEAM_NAME = str(sys.argv[1])
-NUM_PLAYERS = 11
+NUM_PLAYERS = 1
 
 
 if __name__ == "__main__":
@@ -31,6 +31,8 @@ if __name__ == "__main__":
     # return type of agent: midfield, striker etc.
     def agent_type(position):
         return {
+	    0: CA_G,
+            1: CA_O,
             2: CA_D,
             3: CA_G,
             4: CA_D,
