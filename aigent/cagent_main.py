@@ -215,6 +215,10 @@ class Agent(baseAgent):
 
             # kick it at the enemy goal
             if self.wm.is_ball_kickable():
+                #self.wm.kick_to(self.enemy_goal_pos, 1.0)
+                if self.passes():
+                    print('passed')
+                    return
                 self.wm.kick_to(self.enemy_goal_pos, 1.0)
                 return
             else:
@@ -228,16 +232,23 @@ class Agent(baseAgent):
                 return
         # defend
         elif self.playertype in ['def', 'goalie']:
+            
+            if self.wm.ball is None or self.wm.ball.direction is None:
+                self.wm.ah.turn(30)
+                return
             if self.shall_move_to_defend():
                 self.move_to_defend()
+                return
             else:
                 print('returning to post')
                 self.wm.get_angle_to_point(self.post)
                 self.wm.turn_body_to_point(self.post)
                 self.wm.align_neck_with_body()
                 self.wm.ah.dash(45)
+                return
         else:
             print('player type not recognized')
+            return
 
 
 

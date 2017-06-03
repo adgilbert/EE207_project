@@ -13,23 +13,24 @@ class AgentG(Agent):
 
     def decisionLoop(self):
         try:
-            if self.find_ball():
-                if self.wm.get_distance_to_point(self.own_goal_pos) > 5:
-                    # print "overstepping"
-                    self.wm.turn_body_to_point(self.own_goal_pos)
-                    self.wm.turn_body_to_point(self.own_goal_pos)
-                    self.wm.turn_body_to_point(self.own_goal_pos)
-                    self.wm.ah.dash(30)
-                    return
-                elif self.shall_move_to_ball():
-                    return self.move_to_ball()
-                elif self.shall_move_to_defend():
-                    return self.move_to_defend()
-                else:
-                    return self.defaultaction()
-            else:
-                print("G couldnt find ball")
-                return self.defaultaction()
+            return self.defaultaction()
+            #if self.find_ball():
+            #    if self.wm.get_distance_to_point(self.own_goal_pos) > 5:
+            #        # print "overstepping"
+            #        self.wm.turn_body_to_point(self.own_goal_pos)
+            #        self.wm.turn_body_to_point(self.own_goal_pos)
+            #        self.wm.turn_body_to_point(self.own_goal_pos)
+            #        self.wm.ah.dash(30)
+            #        return
+            #    elif self.shall_move_to_ball():
+            #        return self.move_to_ball()
+            #    elif self.shall_move_to_defend():
+            #        return self.move_to_defend()
+            #    else:
+            #        return self.defaultaction()
+            #else:
+            #    print("G couldnt find ball")
+            #    return self.defaultaction()
 
         except Exception as inst:
             print type(inst)     # the exception instance

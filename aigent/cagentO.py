@@ -13,33 +13,34 @@ class AgentO(Agent):
 
     def decisionLoop(self):
         try:
-            if self.wm.ball is None or self.wm.ball.direction is None:
-                print('finding ball')
-                self.find_ball()
-                # if should shoot, full power
-            if self.shall_shoot():
-                print('shooting')
-                return self.shoot()
-            # else shd pass to closest teammate
-            elif self.shall_pass():
-                print('passing')
-                return self.passes()
-            # else shd dribble
-            elif self.shall_dribble():
-                print('dribbling')
-                return self.dribble()
-            elif self.shall_move_to_ball():
-                print('moving to ball')
-                return self.move_to_ball()
-            elif self.shall_move_to_defend():
-                print('moving to defend')
-                return self.move_to_defend()
-            elif self.shall_move_to_enemy_goalpos():
-                print('moving to enemy goal')
-                return self.move_to_enemy_goalpos()
-            else:
-                print('using default')
-                return self.defaultaction()
+            return self.defaultaction()
+            #if self.wm.ball is None or self.wm.ball.direction is None:
+            #    print('finding ball')
+            #    self.find_ball()
+            #    # if should shoot, full power
+            #if self.shall_shoot():
+            #    print('shooting')
+            #    return self.shoot()
+            ## else shd pass to closest teammate
+            #elif self.shall_pass():
+            #    print('passing')
+            #    return self.passes()
+            ## else shd dribble
+            #elif self.shall_dribble():
+            #    print('dribbling')
+            #    return self.dribble()
+            #elif self.shall_move_to_ball():
+            #    print('moving to ball')
+            #    return self.move_to_ball()
+            #elif self.shall_move_to_defend():
+            #    print('moving to defend')
+            #    return self.move_to_defend()
+            #elif self.shall_move_to_enemy_goalpos():
+            #    print('moving to enemy goal')
+            #    return self.move_to_enemy_goalpos()
+            #else:
+            #    print('using default')
+            #    return self.defaultaction()
         except Exception as inst:
             print type(inst)     # the exception instance
             print inst.args      # arguments stored in .args

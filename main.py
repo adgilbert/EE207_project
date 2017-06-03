@@ -23,7 +23,7 @@ if len(sys.argv) < 2:
     print("ERROR: Usage: \n python main.py [TEAM NAME]")
     sys.exit()
 TEAM_NAME = str(sys.argv[1])
-NUM_PLAYERS = 1
+NUM_PLAYERS = 11
 
 
 if __name__ == "__main__":
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # return type of agent: midfield, striker etc.
     def agent_type(position):
         return {
-	    0: CA_G,
+	    0: CA_O,
             1: CA_O,
             2: CA_D,
             3: CA_G,
@@ -54,8 +54,8 @@ if __name__ == "__main__":
         # we wait until we're killed
         while 1:
             # we sleep for a good while since we can only exit if terminated.
-            pass 
-            # time.sleep(1)
+            #pass 
+             time.sleep(1)
 
     # spawn all agents as seperate processes for maximum processing efficiency
     agentthreads = []
@@ -75,8 +75,8 @@ if __name__ == "__main__":
     # wait until killed to terminate agent processes
     try:
         while 1:
-            pass
-            # time.sleep(0.05)
+            #pass
+             time.sleep(0.05)
     except KeyboardInterrupt:
         print
         print "Killing agent threads..."
