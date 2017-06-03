@@ -149,7 +149,7 @@ class Agent(baseAgent):
         attempts = 0
         while attempts <20:
             if self.wm.ball is not None and self.wm.ball.direction is not None:
-                print('FOUND BALL: {}'.format(self.wm.ball.direction))
+                print('FOUND BALL. atmpts = {}, dir= {}'.format(attempts, self.wm.ball.direction))
                 if not -7 <= self.wm.ball.direction <= 7:
                     self.wm.ah.turn(self.wm.ball.direction/2)
                 print('new dir: {}'.format(self.wm.ball.direction))
