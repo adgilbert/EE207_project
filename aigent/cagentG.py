@@ -1,5 +1,5 @@
 import random
-from soccerpy.agent import Agent as baseAgent
+# from soccerpy.agent import Agent as baseAgent
 from soccerpy.world_model import WorldModel
 from cagent_main import Agent
 
@@ -10,24 +10,24 @@ class AgentG(Agent):
     """
 
     def decisionLoop(self):
-        # try:
-        self.find_ball()
-        if self.wm.get_distance_to_point(self.own_goal_pos) > 5:
-            # print "overstepping"
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.turn_body_to_point(self.own_goal_pos)
-            self.wm.ah.dash(30)
-            return
-        elif self.shall_move_to_ball():
-            return self.move_to_ball()
-        elif self.shall_move_to_defend():
-            return self.move_to_defend()
-        else:
-            return self.defaultaction()
-        # except:
-            # print "exceptions thrown, using fallback"
-            # self.defaultaction()
+        try:
+            self.find_ball()
+            if self.wm.get_distance_to_point(self.own_goal_pos) > 5:
+                # print "overstepping"
+                self.wm.turn_body_to_point(self.own_goal_pos)
+                self.wm.turn_body_to_point(self.own_goal_pos)
+                self.wm.turn_body_to_point(self.own_goal_pos)
+                self.wm.ah.dash(30)
+                return
+            elif self.shall_move_to_ball():
+                return self.move_to_ball()
+            elif self.shall_move_to_defend():
+                return self.move_to_defend()
+            else:
+                return self.defaultaction()
+        except:
+            print "exceptions thrown, using fallback"
+            self.defaultaction()
         
 
 
