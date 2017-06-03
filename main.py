@@ -19,11 +19,11 @@ from aigent.cagentO import AgentO as CA_O
 from aigent.cagentD import AgentD as CA_D
 
 # set team
-if len(sys.argv) < 2:
-    print("ERROR: Usage: \n python main.py [TEAM NAME]")
+if len(sys.argv) < 3:
+    print("ERROR: Usage: \n python main.py [TEAM NAME] [NUM_PLAYERS]")
     sys.exit()
 TEAM_NAME = str(sys.argv[1])
-NUM_PLAYERS = 11
+NUM_PLAYERS = int(sys.argv[2])
 
 
 if __name__ == "__main__":
