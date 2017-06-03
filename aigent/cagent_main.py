@@ -146,12 +146,16 @@ class Agent(baseAgent):
     # find the ball by rotating if ball not found
     def find_ball(self):
         # find the ball
-        if self.wm.ball is None or self.wm.ball.direction is None:
+        attempts = 0
+        while attempts <20:
+            if self.wm.ball is not None and self.wm.ball.direction is not None:
+                return True
             self.wm.ah.turn(30)
-            if not -7 <= self.wm.ball.direction <= 7:
-                self.wm.ah.turn(self.wm.ball.direction / 2)
+            attempts += 1
+            # if not -7 <= self.wm.ball.direction <= 7:
+                # self.wm.ah.turn(self.wm.ball.direction / 2)
 
-            return
+        return False
 
         # # kick it at the enemy goal
         # if self.wm.is_ball_kickable():
