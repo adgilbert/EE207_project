@@ -29,27 +29,38 @@ class Agent(baseAgent):
                 side_mod = -1
 
             if self.wm.uniform_number == 1:
-                self.wm.teleport_to_point((-5 * side_mod, 30))
+                self.post = (-5*side_mod, 30)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 2:
-                self.wm.teleport_to_point((-40 * side_mod, 15))
+                self.post = (-40*side_mod, 15)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 3:
-                self.wm.teleport_to_point((-40 * side_mod, 00))
+                self.post = (-40*side_mod, 00)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 4:
-                self.wm.teleport_to_point((-40 * side_mod, -15))
+                self.post = (-40*side_mod, -15)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 5:
-                self.wm.teleport_to_point((-5 * side_mod, -30))
+                self.post = (-5*side_mod, -30)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 6:
-                self.wm.teleport_to_point((-20 * side_mod, 20))
+                self.post = (-20*side_mod, 20)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 7:
-                self.wm.teleport_to_point((-20 * side_mod, 0))
+                self.post = (-20*side_mod, 0)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 8:
-                self.wm.teleport_to_point((-20 * side_mod, -20))
+                self.post = (-20*side_mod, -20)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 9:
-                self.wm.teleport_to_point((-10 * side_mod, 0))
+                self.post = (-10*side_mod, 0)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 10:
-                self.wm.teleport_to_point((-10 * side_mod, 20))
+                self.post = (-10*side_mod, 20)
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 11:
-                self.wm.teleport_to_point((-10 * side_mod, -20))
+                self.post = (-10*side_mod, 20)
+                self.wm.teleport_to_point(self.post)
 
             self.in_kick_off_formation = True
 
@@ -65,7 +76,8 @@ class Agent(baseAgent):
             self.enemy_goal_pos = (55, 0)
             self.own_goal_pos = (-55, 0)
 
-        if not self.wm.is_before_kick_off() or self.wm.is_kick_off_us() or self.wm.is_playon():
+        # if not self.wm.is_before_kick_off() or self.wm.is_kick_off_us() or self.wm.is_playon():
+        if self.wm.is_kick_off_us() or self.wm.is_playon():    
             # The main decision loop
             return self.decisionLoop()
 
@@ -146,19 +158,12 @@ class Agent(baseAgent):
     # find the ball by rotating if ball not found
     def find_ball(self):
         # find the ball
-        attempts = 0
-        while attempts <20:
-            if self.wm.ball is not None and self.wm.ball.direction is not None:
-                print('FOUND BALL. atmpts = {}, dir= {}'.format(attempts, self.wm.ball.direction))
-                if not -7 <= self.wm.ball.direction <= 7:
-                    self.wm.ah.turn(self.wm.ball.direction/2)
-                print('new dir: {}'.format(self.wm.ball.direction))
-                return True
-            self.wm.ah.turn(10)
-            attempts += 1
-            # if not -7 <= self.wm.ball.direction <= 7:
-                # self.wm.ah.turn(self.wm.ball.direction / 2)
-
+        if self.wm.ball is not None and self.wm.ball.direction is not None:
+            print('FOUND BALL. atmpts = {}, dir= {}'.format(attempts, self.wm.ball.direction))
+            if not -7 <= self.wm.ball.direction <= 7:
+                self.wm.ah.turn(self.wm.ball.direction/2)
+            return True
+        self.wm.ah.turn(30)
         return False
 
         # # kick it at the enemy goal
@@ -201,7 +206,7 @@ class Agent(baseAgent):
                 return
 
         # attack!
-        else:
+        elif self.playertype == 'off':
             # find the ball
             if self.wm.ball is None or self.wm.ball.direction is None:
                 self.wm.ah.turn(30)
@@ -221,6 +226,20 @@ class Agent(baseAgent):
                     self.wm.ah.turn(self.wm.ball.direction / 2)
 
                 return
+        # defend
+        elif self.playertype in ['def', 'goalie']:
+            if self.shall_move_to_defend():
+                self.move_to_defend()
+            else:
+                print('returning to post')
+                self.wm.get_angle_to_point(self.post)
+                self.wm.turn_body_to_point(self.post)
+                self.wm.align_neck_with_body()
+                self.wm.ah.dash(45)
+        else:
+            print('player type not recognized')
+
+
 
 
 
@@ -241,10 +260,11 @@ class Agent(baseAgent):
         if p == None:
             return False
         p_coords = self.wm.get_object_absolute_coords(p)
-        pDistToGoal = self.wm.euclidean_distance(p_coords, self.enemy_goal_pos)
-        myDistToGoal = self.wm.get_distance_to_point(self.enemy_goal_pos)
+        # pDistToGoal = self.wm.euclidean_distance(p_coords, self.enemy_goal_pos)
+        # myDistToGoal = self.wm.get_distance_to_point(self.enemy_goal_pos)
         # kickable, pass closer to goal, path is clear
-        return self.wm.is_ball_kickable() and pDistToGoal < myDistToGoal and self.is_clear(p_coords)
+        # return self.wm.is_ball_kickable() and pDistToGoal < myDistToGoal and self.is_clear(p_coords)
+        return self.wm.is_ball_kickable() and self.is_clear(p_coords)
 
     # do passes
     def passes(self):

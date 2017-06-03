@@ -8,7 +8,8 @@ class AgentD(Agent):
     """
     The extended Agent class with specific heuritics
     """
-
+    def __init__(self):
+        super(AgentD, self).__init__('def')
     def decisionLoop(self):
         try:
             if self.find_ball(): 

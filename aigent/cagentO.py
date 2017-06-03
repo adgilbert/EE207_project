@@ -8,6 +8,8 @@ class AgentO(Agent):
     """
     The extended Agent class with specific heuritics
     """
+    def __init__(self):
+        super(AgentO, self).__init__('off')
 
     def decisionLoop(self):
         try:
@@ -30,7 +32,7 @@ class AgentO(Agent):
                 else:
                     return self.defaultaction()
             else:
-                print("couldnt find ball after 20 tries")
+                print("O couldnt find ball after 20 tries")
                 return self.defaultaction()
         except:
             print "exceptions thrown, using fallback"

@@ -8,6 +8,8 @@ class AgentG(Agent):
     """
     The extended Agent class with specific heuritics
     """
+    def __init__(self):
+        super(AgentG, self).__init__('goalie')
 
     def decisionLoop(self):
         try:
@@ -26,7 +28,7 @@ class AgentG(Agent):
                 else:
                     return self.defaultaction()
             else:
-                print("couldnt find ball")
+                print("G couldnt find ball")
                 return self.defaultaction()
 
         except:

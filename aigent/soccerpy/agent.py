@@ -9,13 +9,18 @@ import sp_exceptions
 import handler
 from world_model import WorldModel
 
-class Agent:
-    def __init__(self):
+class Agent(object):
+
+    def __init__(self, playertype):
+        '''
+        playertype is one of 'off', 'def', 'goalie'
+        '''
         # whether we're connected to a server yet or not
         self.__connected = False
 
         # set all variables and important objects to appropriate values for
         # pre-connect state.
+
 
         # the socket used to communicate with the server
         self.__sock = None
@@ -40,6 +45,14 @@ class Agent:
         # adding goal post markers
         self.enemy_goal_pos = None
         self.own_goal_pos = None
+        self.last_command = None
+
+        if playertype in ['off', 'def', 'goalie']:
+            self.playertype = playertype
+        else:
+            print('player type must be one of off, def, goalie')
+            return
+
 
 
     def connect(self, host, port, teamname, version=11):
