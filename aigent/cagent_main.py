@@ -3,7 +3,6 @@ from soccerpy.agent import Agent as baseAgent
 from soccerpy.world_model import WorldModel
 import numpy as np
 import time
-import matplotlib.pyplot as plt
 from numpy.linalg import svd, norm, pinv
 import nengo
 from numpy import pi
