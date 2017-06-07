@@ -79,6 +79,7 @@ class WorldModel:
         # these variables store all objects for any particular game step
         self.ball = None
         self.flags = []
+        self.flag_dict = None
         self.goals = []
         self.players = []
         self.lines = []
@@ -308,11 +309,13 @@ class WorldModel:
         self.players = players
         self.lines = lines
 
+
         # TODO: make all triangulate_* calculations more accurate
 
         # update the apparent coordinates of the player based on all flag pairs
         flag_dict = game_object.Flag.FLAG_COORDS
         self.abs_coords = self.triangulate_position(self.flags, flag_dict)
+        self.flag_dict = flag_dict
 
         # set the neck and body absolute directions based on flag directions
         self.abs_neck_dir = self.triangulate_direction(self.flags, flag_dict)
@@ -368,6 +371,45 @@ class WorldModel:
             return free_right
         else:
             return free_left
+
+    def is_dead_ball_us(self):
+        """
+        Returns whether the ball is in the other team's posession and it's a
+        free kick, corner kick, or kick in.
+        """
+
+        # shorthand for verbose constants
+        kil = WorldModel.PlayModes.KICK_IN_L
+        kir = WorldModel.PlayModes.KICK_IN_R
+        fkl = WorldModel.PlayModes.FREE_KICK_L
+        fkr = WorldModel.PlayModes.FREE_KICK_R
+        ckl = WorldModel.PlayModes.CORNER_KICK_L
+        ckr = WorldModel.PlayModes.CORNER_KICK_R
+
+        # shorthand for whether left team or right team is free to act
+        pm = self.play_mode
+        free_left = (pm == kil or pm == fkl or pm == ckl)
+        free_right = (pm == kir or pm == fkr or pm == ckr)
+
+        # return whether the opposing side is in a dead ball situation
+        if self.side == WorldModel.SIDE_L:
+            return free_left
+        else:
+            return free_right
+    def find_best_kick_spot(self, kickto, ball):
+        """
+        extrapolates a vector to find the best spot to kick the ball towards the opposing goal. 
+        kickto: a tuple of the coordinates to kick to
+        ball: a tuple of coordinate ball coordinates
+        both of these must exist
+
+        """
+
+        norm = self.euclidean_distance(kickto, ball)    
+        runto = (0, 0)
+        runto[0] = ball[0] - self.server_parameters.kickable_margin*(goal[0]-ball[0])/(2*norm)
+        runto[1] = ball[1] - self.server_parameters.kickable_margin*(goal[1]-ball[1])/(2*norm)
+        return runto
 
     def is_ball_kickable(self):
         """

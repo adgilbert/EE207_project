@@ -19,7 +19,7 @@ from numpy import pi
 
 class Agent(object):
 
-    def __init__(self, playertype):
+    def __init__(self, playertype='off'):
         '''
         playertype is one of 'off', 'def', 'goalie'
         '''
@@ -55,6 +55,7 @@ class Agent(object):
         self.own_goal_pos = None
         self.last_action = None
         self.last_balldir = None
+        self.angle_to_goal = None
 
         self.decodes = self.init_turn_network()
 
@@ -290,44 +291,76 @@ class Agent(object):
         # take places on the field by uniform number
         if not self.in_kick_off_formation:
 
+            # determine the enemy goal position
+            if self.wm.side == WorldModel.SIDE_R:
+                self.goal_pos = (-55, 0)
+                self.enemy_goal_pos = self.goal_pos # duplicate var
+                self.own_goal_pos = (55, 0)
+            else:
+                self.goal_pos = (55, 0)
+                self.enemy_goal_pos = self.goal_pos
+                self.own_goal_pos = (-55, 0)
+
             # used to flip x coords for other side
             side_mod = 1
             if self.wm.side == WorldModel.SIDE_R:
                 side_mod = -1
 
             if self.wm.uniform_number == 1:
-                self.wm.teleport_to_point((-5 * side_mod, 30))
+                self.post = (-5*side_mod, 30)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 2:
-                self.wm.teleport_to_point((-40 * side_mod, 15))
+                self.post = (-40*side_mod, 15)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 3:
-                self.wm.teleport_to_point((-40 * side_mod, 00))
+                self.post = (-40*side_mod, 00)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 4:
-                self.wm.teleport_to_point((-40 * side_mod, -15))
+                self.post = (-40*side_mod, -15)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 5:
-                self.wm.teleport_to_point((-5 * side_mod, -30))
+                self.post = (-5*side_mod, -30)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 6:
-                self.wm.teleport_to_point((-20 * side_mod, 20))
+                self.post = (-20*side_mod, 20)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 7:
-                self.wm.teleport_to_point((-20 * side_mod, 0))
+                self.post = (-20*side_mod, 0)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 8:
-                self.wm.teleport_to_point((-20 * side_mod, -20))
+                self.post = (-20*side_mod, -20)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 9:
-                self.wm.teleport_to_point((-10 * side_mod, 0))
+                self.post = (-10*side_mod, 0)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 10:
-                self.wm.teleport_to_point((-10 * side_mod, 20))
+                self.post = (-10*side_mod, 20)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
             elif self.wm.uniform_number == 11:
-                self.wm.teleport_to_point((-10 * side_mod, -20))
+                self.post = (-10*side_mod, 20)
+                self.current_pos = self.post
+                self.wm.teleport_to_point(self.post)
 
             self.in_kick_off_formation = True
 
+
             return
 
-        # determine the enemy goal position
-        goal_pos = None
-        if self.wm.side == WorldModel.SIDE_R:
-            goal_pos = (-55, 0)
-        else:
-            goal_pos = (55, 0)
+        if self.wm.abs_coords is not None:
+            self.angle_to_goal = self.wm.angle_between_points(self.goal_pos, self.wm.abs_coords)
+        
+        # if self.p != (0, 0):
+        #     self.current_pos = self.p
 
         # kick off!
         if self.wm.is_before_kick_off():
@@ -335,7 +368,7 @@ class Agent(object):
             if self.wm.uniform_number == 9:
                 if self.wm.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
-                    self.wm.kick_to(goal_pos, 1.0)
+                    self.wm.kick_to(self.goal_pos, 1.0)
                 else:
                     # move towards ball
                     if self.wm.ball is not None:
@@ -350,6 +383,25 @@ class Agent(object):
                     self.wm.turn_neck_to_object(self.wm.ball)
 
                 return
+        elif self.wm.is_dead_ball_us():
+            if self.wm.uniform_number == 9:
+                if self.wm.ball is not None and self.wm.abs_body_dir is not None:
+                    self.kick_spot = self.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+                    if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
+                        self.wm.ah.dash(65) # move toward kick spot
+                        return
+
+                    elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
+                        self.wm.turn_body_to_point(self.enemy_goal_pos)
+
+                    else: # all set, kick to goal
+                        self.wm.kick_to(self.goal_pos, 1.0)
+                else:
+                    self.wm.ah.turn(30)
+            # elif self.playertype == 'off':
+            else: 
+                pass # do nothing for now
+
 
         # attack!
         else:
@@ -361,7 +413,7 @@ class Agent(object):
 
             # kick it at the enemy goal
             if self.wm.is_ball_kickable():
-                self.wm.kick_to(goal_pos, 1.0)
+                self.wm.kick_to(self.goal_pos, 1.0)
                 return
             else:
                 # move towards ball
