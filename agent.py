@@ -9,13 +9,26 @@ import sp_exceptions
 import handler
 from world_model import WorldModel
 
-class Agent:
-    def __init__(self):
+# nengo stuff
+import numpy as np
+import time
+from numpy.linalg import svd, norm, pinv
+import nengo
+from numpy import pi
+
+
+class Agent(object):
+
+    def __init__(self, playertype):
+        '''
+        playertype is one of 'off', 'def', 'goalie'
+        '''
         # whether we're connected to a server yet or not
         self.__connected = False
 
         # set all variables and important objects to appropriate values for
         # pre-connect state.
+
 
         # the socket used to communicate with the server
         self.__sock = None
@@ -36,6 +49,54 @@ class Agent:
 
         # whether we should send commands
         self.__send_commands = False
+
+        # adding goal post markers
+        self.enemy_goal_pos = None
+        self.own_goal_pos = None
+        self.last_action = None
+        self.last_balldir = None
+
+        self.decodes = self.init_turn_network()
+
+        if playertype in ['off', 'def', 'goalie']:
+            self.playertype = playertype
+        else:
+            print('player type must be one of off, def, goalie')
+            return
+
+    def init_turn_network(self):
+        # Use the following in your simulation
+        T = 1.               # duration of simulation
+        tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
+        in_fun = lambda t: t # input function to your network
+        N = 500  # Number of neurons in each Ensemble
+
+        model = nengo.Network()
+        with model:
+            stim = nengo.Node(in_fun)
+            ensA = nengo.Ensemble(N, dimensions=1)
+            ensB = nengo.Ensemble(N, dimensions=1)
+            
+            nengo.Connection(stim, ensA)
+            nengo.Connection(ensA, ensB, function=lambda x: 0.5*np.sin(pi*x))
+            
+            stim_p = nengo.Probe(stim)
+            ensA_p = nengo.Probe(ensA, synapse=.01)
+            ensB_p = nengo.Probe(ensB, synapse=.01)
+            ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
+            ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
+   
+        sim = nengo.Simulator(model, dt=.001)
+        sim.run(T, progress_bar=False)
+         
+        decodes = sim.data[ensB_p]
+        return decodes
+
+    def ball_to_turn(self, angle, decodes):
+        ''' interpolate decodes to the correct value'''
+
+        angle_idx =  int(angle*1000/360)
+        return decodes[angle_idx]*360
 
     def connect(self, host, port, teamname, version=11):
         """
@@ -124,11 +185,9 @@ class Agent:
         Tell the loop threads to stop and signal the server that we're
         disconnecting, then join the loop threads and destroy all our inner
         methods.
-
         Since the message loop thread can conceiveably block indefinitely while
         waiting for the server to respond, we only allow it (and the think loop
         for good measure) a short time to finish before simply giving up.
-
         Once an agent has been disconnected, it is 'dead' and cannot be used
         again.  All of its methods get replaced by a method that raises an
         exception every time it is called.
@@ -161,7 +220,6 @@ class Agent:
     def __message_loop(self):
         """
         Handles messages received from the server.
-
         This SHOULD NOT be called externally, since it's used as a threaded loop
         internally by this object.  Calling it externally is a BAD THING!
         """
@@ -186,7 +244,6 @@ class Agent:
         """
         Performs world model analysis and sends appropriate commands to the
         server to allow the agent to participate in the current game.
-
         Like the message loop, this SHOULD NOT be called externally.  Use the
         play method to start play, and the disconnect method to end it.
         """
@@ -315,7 +372,6 @@ class Agent:
                     self.wm.ah.turn(self.wm.ball.direction / 2)
 
                 return
-
 
 if __name__ == "__main__":
     import sys
