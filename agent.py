@@ -356,9 +356,10 @@ class Agent(object):
 
             return
 
-        if self.wm.abs_coords is not None and self.goal_pos is not None:
-            self.angle_to_goal = self.wm.angle_between_points(self.goal_pos, self.wm.abs_coords)
-        
+#        if self.wm.abs_coords is not None and self.goal_pos is not None:
+ #           self.angle_to_goal = self.wm.angle_between_points(self.goal_pos, self.wm.abs_coords)
+        if self.wm.abs_body_dir is not None and self.goal_pos is not None:
+                self.angle_to_goal = self.wm.get_angle_to_point(self.goal_pos)
         # if self.p != (0, 0):
         #     self.current_pos = self.p
 

@@ -327,6 +327,13 @@ class WorldModel:
         else:
             self.abs_body_dir = None
 
+    def is_playon(self):
+        """
+        Tells us whether it's play time
+        """
+        return self.play_mode == WorldModel.PlayModes.PLAY_ON or self.play_mode == WorldModel.PlayModes.KICK_OFF_L or self.play_mode == WorldModel.PlayModes.KICK_OFF_R or self.play_mode == WorldModel.PlayModes.KICK_IN_L or self.play_mode == WorldModel.PlayModes.KICK_IN_R or self.play_mode == WorldModel.PlayModes.FREE_KICK_L or self.play_mode == WorldModel.PlayModes.FREE_KICK_R or self.play_mode == WorldModel.PlayModes.CORNER_KICK_L or self.play_mode == WorldModel.PlayModes.CORNER_KICK_R or self.play_mode == WorldModel.PlayModes.GOAL_KICK_L or self.play_mode == WorldModel.PlayModes.GOAL_KICK_R or self.play_mode == WorldModel.PlayModes.DROP_BALL or self.play_mode == WorldModel.PlayModes.OFFSIDE_L or self.play_mode == WorldModel.PlayModes.OFFSIDE_R
+
+
     def is_before_kick_off(self):
         """
         Tells us whether the game is in a pre-kickoff state.
@@ -507,6 +514,17 @@ class WorldModel:
         """
 
         return self.euclidean_distance(self.abs_coords, point)
+
+    # Keng-added
+    def get_angle_to_point(self, point):
+        """
+        Returns the relative angle to some point on the field from self.
+        """
+
+        # calculate absolute direction to point
+        # subtract from absolute body direction to get relative angle
+        return self.abs_body_dir - self.angle_between_points(self.abs_coords, point)
+
 
     def turn_body_to_point(self, point):
         """
