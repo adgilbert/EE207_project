@@ -240,7 +240,7 @@ class Agent(baseAgent):
                     # face ball
                     print('facing ball')
                     # self.wm.ah.turn(self.wm.ball.direction / 2)
-                    self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
+                    self.wm.ah.turn(self.ball_to_turn(self.wm.ball.direction, self.decodes))
 
                 return
         # defend
