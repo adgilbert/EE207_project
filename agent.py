@@ -9,26 +9,13 @@ import sp_exceptions
 import handler
 from world_model import WorldModel
 
-# nengo stuff
-import numpy as np
-import time
-from numpy.linalg import svd, norm, pinv
-import nengo
-from numpy import pi
-
-
-class Agent(object):
-
-    def __init__(self, playertype):
-        '''
-        playertype is one of 'off', 'def', 'goalie'
-        '''
+class Agent:
+    def __init__(self):
         # whether we're connected to a server yet or not
         self.__connected = False
 
         # set all variables and important objects to appropriate values for
         # pre-connect state.
-
 
         # the socket used to communicate with the server
         self.__sock = None
@@ -49,54 +36,6 @@ class Agent(object):
 
         # whether we should send commands
         self.__send_commands = False
-
-        # adding goal post markers
-        self.enemy_goal_pos = None
-        self.own_goal_pos = None
-        self.last_action = None
-        self.last_balldir = None
-
-        self.decodes = self.init_turn_network()
-
-        if playertype in ['off', 'def', 'goalie']:
-            self.playertype = playertype
-        else:
-            print('player type must be one of off, def, goalie')
-            return
-
-    def init_turn_network(self):
-        # Use the following in your simulation
-        T = 1.               # duration of simulation
-        tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
-        in_fun = lambda t: t # input function to your network
-        N = 500  # Number of neurons in each Ensemble
-
-        model = nengo.Network()
-        with model:
-            stim = nengo.Node(in_fun)
-            ensA = nengo.Ensemble(N, dimensions=1)
-            ensB = nengo.Ensemble(N, dimensions=1)
-            
-            nengo.Connection(stim, ensA)
-            nengo.Connection(ensA, ensB, function=lambda x: 0.5*np.sin(pi*x))
-            
-            stim_p = nengo.Probe(stim)
-            ensA_p = nengo.Probe(ensA, synapse=.01)
-            ensB_p = nengo.Probe(ensB, synapse=.01)
-            ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
-            ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
-   
-        sim = nengo.Simulator(model, dt=.001)
-        sim.run(T, progress_bar=False)
-         
-        decodes = sim.data[ensB_p]
-        return decodes
-
-    def ball_to_turn(self, angle, decodes):
-        ''' interpolate decodes to the correct value'''
-
-        angle_idx =  int(angle*1000/360)
-        return decodes[angle_idx]*360
 
     def connect(self, host, port, teamname, version=11):
         """
@@ -378,61 +317,61 @@ class Agent(object):
                 return
 
 
-# if __name__ == "__main__":
-#     import sys
-#     import multiprocessing as mp
+if __name__ == "__main__":
+    import sys
+    import multiprocessing as mp
 
-#     # enforce corrent number of arguments, print help otherwise
-#     if len(sys.argv) < 3:
-#         print "args: ./agent.py <team_name> <num_players>"
-#         sys.exit()
+    # enforce corrent number of arguments, print help otherwise
+    if len(sys.argv) < 3:
+        print "args: ./agent.py <team_name> <num_players>"
+        sys.exit()
 
-#     def spawn_agent(team_name):
-#         """
-#         Used to run an agent in a seperate physical process.
-#         """
+    def spawn_agent(team_name):
+        """
+        Used to run an agent in a seperate physical process.
+        """
 
-#         a = Agent()
-#         a.connect("localhost", 6000, team_name)
-#         a.play()
+        a = Agent()
+        a.connect("localhost", 6000, team_name)
+        a.play()
 
-#         # we wait until we're killed
-#         while 1:
-#             # we sleep for a good while since we can only exit if terminated.
-#             time.sleep(1)
+        # we wait until we're killed
+        while 1:
+            # we sleep for a good while since we can only exit if terminated.
+            time.sleep(1)
 
-#     # spawn all agents as seperate processes for maximum processing efficiency
-#     agentthreads = []
-#     for agent in xrange(min(11, int(sys.argv[2]))):
-#         print "  Spawning agent %d..." % agent
+    # spawn all agents as seperate processes for maximum processing efficiency
+    agentthreads = []
+    for agent in xrange(min(11, int(sys.argv[2]))):
+        print "  Spawning agent %d..." % agent
 
-#         at = mp.Process(target=spawn_agent, args=(sys.argv[1],))
-#         at.daemon = True
-#         at.start()
+        at = mp.Process(target=spawn_agent, args=(sys.argv[1],))
+        at.daemon = True
+        at.start()
 
-#         agentthreads.append(at)
+        agentthreads.append(at)
 
-#     print "Spawned %d agents." % len(agentthreads)
-#     print
-#     print "Playing soccer..."
+    print "Spawned %d agents." % len(agentthreads)
+    print
+    print "Playing soccer..."
 
-#     # wait until killed to terminate agent processes
-#     try:
-#         while 1:
-#             time.sleep(0.05)
-#     except KeyboardInterrupt:
-#         print
-#         print "Killing agent threads..."
+    # wait until killed to terminate agent processes
+    try:
+        while 1:
+            time.sleep(0.05)
+    except KeyboardInterrupt:
+        print
+        print "Killing agent threads..."
 
-#         # terminate all agent processes
-#         count = 0
-#         for at in agentthreads:
-#             print "  Terminating agent %d..." % count
-#             at.terminate()
-#             count += 1
-#         print "Killed %d agent threads." % (count - 1)
+        # terminate all agent processes
+        count = 0
+        for at in agentthreads:
+            print "  Terminating agent %d..." % count
+            at.terminate()
+            count += 1
+        print "Killed %d agent threads." % (count - 1)
 
-#         print
-#         print "Exiting."
-#         sys.exit()
+        print
+        print "Exiting."
+        sys.exit()
 

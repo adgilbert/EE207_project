@@ -10,7 +10,7 @@ from world_model import WorldModel
 PRINT_SERVER_MESSAGES = False
 
 # should we print commands sent to the server?
-PRINT_SENT_COMMANDS = True
+PRINT_SENT_COMMANDS = False
 
 class MessageHandler:
     """

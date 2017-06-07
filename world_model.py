@@ -263,15 +263,12 @@ class WorldModel:
         Returns the Euclidean distance between two points on a plane.
         """
 
-        try:
-            x1 = point1[0]
-            y1 = point1[1]
-            x2 = point2[0]
-            y2 = point2[1]
-    
-            return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-        except:
-            return 200
+        x1 = point1[0]
+        y1 = point1[1]
+        x2 = point2[0]
+        y2 = point2[1]
+
+        return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
     def angle_between_points(self, point1, point2):
         """
@@ -281,24 +278,21 @@ class WorldModel:
         and relative to the positive x-axis.
         """
 
-        try:
-            x1 = point1[0]
-            y1 = point1[1]
-            x2 = point2[0]
-            y2 = point2[1]
+        x1 = point1[0]
+        y1 = point1[1]
+        x2 = point2[0]
+        y2 = point2[1]
 
-            # get components of vector between the points
-            dx = x2 - x1
-            dy = y2 - y1
+        # get components of vector between the points
+        dx = x2 - x1
+        dy = y2 - y1
 
-            # return the angle in degrees
-            a = math.degrees(math.atan2(dy, dx))
-            if a < 0:
-                a = 360 + a
-    
-            return a
-        except:
-            return 0
+        # return the angle in degrees
+        a = math.degrees(math.atan2(dy, dx))
+        if a < 0:
+            a = 360 + a
+
+        return a
 
     def process_new_info(self, ball, flags, goals, players, lines):
         """
@@ -329,12 +323,6 @@ class WorldModel:
         else:
             self.abs_body_dir = None
 
-    def is_playon(self):
-        """
-        Tells us whether it's play time
-        """
-        return self.play_mode == WorldModel.PlayModes.PLAY_ON or self.play_mode == WorldModel.PlayModes.KICK_OFF_L or self.play_mode == WorldModel.PlayModes.KICK_OFF_R or self.play_mode == WorldModel.PlayModes.KICK_IN_L or self.play_mode == WorldModel.PlayModes.KICK_IN_R or self.play_mode == WorldModel.PlayModes.FREE_KICK_L or self.play_mode == WorldModel.PlayModes.FREE_KICK_R or self.play_mode == WorldModel.PlayModes.CORNER_KICK_L or self.play_mode == WorldModel.PlayModes.CORNER_KICK_R or self.play_mode == WorldModel.PlayModes.GOAL_KICK_L or self.play_mode == WorldModel.PlayModes.GOAL_KICK_R or self.play_mode == WorldModel.PlayModes.DROP_BALL or self.play_mode == WorldModel.PlayModes.OFFSIDE_L or self.play_mode == WorldModel.PlayModes.OFFSIDE_R
-
     def is_before_kick_off(self):
         """
         Tells us whether the game is in a pre-kickoff state.
@@ -350,7 +338,7 @@ class WorldModel:
         ko_left = WorldModel.PlayModes.KICK_OFF_L
         ko_right = WorldModel.PlayModes.KICK_OFF_R
 
-        # print self.play_mode
+        print self.play_mode
 
         # return whether we're on the side that's kicking off
         return (self.side == WorldModel.SIDE_L and self.play_mode == ko_left or
@@ -477,28 +465,16 @@ class WorldModel:
 
         return self.euclidean_distance(self.abs_coords, point)
 
-    # Keng-added
-    def get_angle_to_point(self, point):
-        """
-        Returns the relative angle to some point on the field from self.
-        """
-
-        # calculate absolute direction to point
-        # subtract from absolute body direction to get relative angle
-        return self.abs_body_dir - self.angle_between_points(self.abs_coords, point)
-
-    # Keng-added
     def turn_body_to_point(self, point):
         """
         Turns the agent's body to face a given point on the field.
         """
 
-        relative_dir = self.get_angle_to_point(point)
+        # calculate absolute direction to point
+        abs_point_dir = self.angle_between_points(self.abs_coords, point)
 
-        if relative_dir > 180:
-            relative_dir = relative_dir - 180
-        elif relative_dir < -180:
-            relative_dir = relative_dir + 180
+        # subtract from absolute body direction to get relative angle
+        relative_dir = self.abs_body_dir - abs_point_dir
 
         # turn to that angle
         self.ah.turn(relative_dir)
@@ -547,101 +523,17 @@ class WorldModel:
         distances = []
         for p in self.players:
             # skip enemy and unknwon players
-            if p.side == self.side:
-                # find their absolute position
-                p_coords = self.get_object_absolute_coords(p)
-
-                distances.append((self.euclidean_distance(point, p_coords), p))
-
-        # return the nearest known teammate to the given point
-        try:
-            nearest = min(distances)[1]
-            return nearest
-        except:
-            return None
-
-    # Keng-added
-    def get_nearest_teammate(self):
-        """
-        Returns the teammate player closest to self.
-        """
-
-        # holds tuples of (player dist to point, player)
-        distances = []
-        # print "checking from get_nearest_teammate"
-        # print "selfside", self.side
-        for p in self.players:
-            # print p.side
-            # print p.side == self.side
-            # skip enemy and unknwon players
-            if p.side == self.side:
-                # find their absolute position
-                p_coords = self.get_object_absolute_coords(p)
-
-                distances.append((self.get_distance_to_point(p_coords), p))
-
-        # print "finally", distances
-        # return the nearest known teammate to the given point
-        try:
-            nearest = min(distances)[1]
-            return nearest
-        except:
-            return None
-
-    # Keng-added
-    def get_nearest_enemy(self):
-        """
-        Returns the enemy player closest to self.
-        """
-
-        # holds tuples of (player dist to point, player)
-        distances = []
-        for p in self.players:
-            # skip enemy and unknwon players
             if p.side != self.side:
-                # find their absolute position
-                p_coords = self.get_object_absolute_coords(p)
+                continue
 
-                distances.append((self.get_distance_to_point(p_coords), p))
+            # find their absolute position
+            p_coords = self.get_object_absolute_coords(p)
+
+            distances.append((self.euclidean_distance(point, p_coords), p))
 
         # return the nearest known teammate to the given point
-        try:
-            nearest = min(distances)[1]
-            return nearest
-        except:
-            return None
-
-    # Keng-added
-    def is_ball_owned_by_us(self):
-        """
-        Returns if the ball is in possession by our team.
-        """
-
-        # holds tuples of (player dist to point, player)
-        for p in self.players:
-            # skip enemy and unknwon players
-            if p.side == self.side and self.euclidean_distance(self.get_object_absolute_coords(self.ball), self.get_object_absolute_coords(p)) < self.server_parameters.kickable_margin:
-                return True
-            else:
-                continue
-
-        return False
-
-    # Keng-added
-    def is_ball_owned_by_enemy(self):
-        """
-        Returns if the ball is in possession by the enemy team.
-        """
-
-        # holds tuples of (player dist to point, player)
-        for p in self.players:
-            # skip enemy and unknwon players
-            if p.side != self.side and self.euclidean_distance(self.get_object_absolute_coords(self.ball), self.get_object_absolute_coords(p)) < self.server_parameters.kickable_margin:
-                return True
-            else:
-                continue
-
-        return False
+        nearest = min(distances)[1]
+        return nearest
 
     def get_stamina(self):
         """
