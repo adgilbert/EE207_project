@@ -295,6 +295,7 @@ class WorldModel:
 
         return a
 
+
     def process_new_info(self, ball, flags, goals, players, lines):
         """
         Update any internal variables based on the currently available
@@ -576,6 +577,89 @@ class WorldModel:
         # return the nearest known teammate to the given point
         nearest = min(distances)[1]
         return nearest
+
+        # Keng-added
+    def get_nearest_teammate(self):
+        """
+        Returns the teammate player closest to self.
+        """
+
+        # holds tuples of (player dist to point, player)
+        distances = []
+        # print "checking from get_nearest_teammate"
+        # print "selfside", self.side
+        for p in self.players:
+            # print p.side
+            # print p.side == self.side
+            # skip enemy and unknwon players
+            if p.side == self.side:
+                # find their absolute position
+                p_coords = self.get_object_absolute_coords(p)
+
+                distances.append((self.get_distance_to_point(p_coords), p))
+
+        # print "finally", distances
+        # return the nearest known teammate to the given point
+        try:
+            nearest = min(distances)[1]
+            return nearest
+        except:
+            return None
+
+    # Keng-added
+    def get_nearest_enemy(self):
+        """
+        Returns the enemy player closest to self.
+        """
+
+        # holds tuples of (player dist to point, player)
+        distances = []
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side != self.side:
+                # find their absolute position
+                p_coords = self.get_object_absolute_coords(p)
+
+                distances.append((self.get_distance_to_point(p_coords), p))
+
+        # return the nearest known teammate to the given point
+        try:
+            nearest = min(distances)[1]
+            return nearest
+        except:
+            return None
+
+    # Keng-added
+    def is_ball_owned_by_us(self):
+        """
+        Returns if the ball is in possession by our team.
+        """
+
+        # holds tuples of (player dist to point, player)
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side == self.side and self.euclidean_distance(self.get_object_absolute_coords(self.ball), self.get_object_absolute_coords(p)) < self.server_parameters.kickable_margin:
+                return True
+            else:
+                continue
+
+        return False
+
+    # Keng-added
+    def is_ball_owned_by_enemy(self):
+        """
+        Returns if the ball is in possession by the enemy team.
+        """
+
+        # holds tuples of (player dist to point, player)
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side != self.side and self.euclidean_distance(self.get_object_absolute_coords(self.ball), self.get_object_absolute_coords(p)) < self.server_parameters.kickable_margin:
+                return True
+            else:
+                continue
+
+        return False
 
     def get_stamina(self):
         """
