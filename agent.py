@@ -449,7 +449,7 @@ class Agent(object):
                 if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
                     # Make sure we are turned toward ball
                     if abs(self.wm.get_angle_to_point(self.kick_spot)) > 15:
-                        print('turning toward ball. current angle: {}'.format(self.wm.get_angle_to_point(self.kick_spot)))
+                        print('kick_spot = {}. turning toward ball. current angle: {}'.format(self.kick_spot, self.wm.get_angle_to_point(self.kick_spot)))
                         self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
                     # Run towards it
                     else:
@@ -460,13 +460,18 @@ class Agent(object):
                 elif abs(self.get_angle_to_point(self.enemy_goal_pos)) > 7:
                     print('turning to goal')
                     self.wm.turn_body_to_point(self.enemy_goal_pos)
+                    return
 
                 else: # all set, kick to goal
                     print('kicking at goal')
                     self.wm.kick_to(self.goal_pos, 1.0)
+                    return
             else:
                 print('ball or body_dir is none. ball: {}, body: {}'.format(self.wm.ball, self.wm.abs_coords))
                 self.wm.ah.turn(30)
+                return
+            
+
             # if self.wm.ball is None or self.wm.ball.direction is None:
             #     self.wm.ah.turn(30)
 
@@ -493,7 +498,7 @@ class Agent(object):
             #         # self.wm.ah.turn(self.wm.ball.direction / 2)
             #         self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
 
-                return
+                # return
 
 if __name__ == "__main__":
     import sys
