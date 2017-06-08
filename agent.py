@@ -344,19 +344,19 @@ class Agent:
             return
 
         # determine the enemy goal position
-        goal_pos = None
+        self.goal_pos = None
         if self.wm.side == WorldModel.SIDE_R:
-            goal_pos = (-55, 0)
+            self.goal_pos = (-55, 0)
         else:
-            goal_pos = (55, 0)
+            self.goal_pos = (55, 0)
 
         # kick off!
         if self.wm.is_before_kick_off():
             # player 9 takes the kick off
-            if self.wm.uniform_number == 3:
+            if self.wm.uniform_number < 5:
                 if self.wm.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
-                    self.wm.kick_to(goal_pos, 1.0)
+                    self.wm.kick_to(self.goal_pos, 1.0)
                 else:
                     # move towards ball
                     if self.wm.ball is not None:
@@ -378,16 +378,20 @@ class Agent:
             if self.wm.uniform_number < 5:
                 print('taking free kick')
                 if self.wm.ball is not None and self.wm.abs_body_dir is not None:
-                    self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
-                    if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
-                        self.wm.ah.dash(65) # move toward kick spot
-                        return
+                    try:
+                        self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+                        if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
+                            self.wm.ah.dash(65) # move toward kick spot
+                            return
 
-                    elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
-                        self.wm.turn_body_to_point(self.enemy_goal_pos)
+                        elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
+                            self.wm.turn_body_to_point(self.enemy_goal_pos)
 
-                    else: # all set, kick to goal
-                        self.wm.kick_to(self.goal_pos, 1.0)
+                        else: # all set, kick to goal
+                            self.wm.kick_to(self.goal_pos, 1.0)
+                    except(TypeError):
+                        print('ball dir is none')
+                        self.wm.ah.turn(30)
                 else:
                     self.wm.ah.turn(30)
                 return
@@ -407,15 +411,15 @@ class Agent:
 
             # kick it at the enemy goal
             if self.wm.is_ball_kickable():
-                goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
-                distances, angles = self.wm.get_enemies()
-                enemy_angle = 0
-                for d, a in zip(distances, angles):
-                    enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
-                kick_angle = .8*goal_angle + .2*enemy_angle
+                #goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
+                #distances, angles = self.wm.get_enemies()
+                #enemy_angle = 0
+                #for d, a in zip(distances, angles):
+                #    enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
+                #kick_angle = .8*goal_angle + .2*enemy_angle
 
-                self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
-                # self.wm.kick_to(goal_pos, 1.0)
+                #self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
+                self.wm.kick_to(self.goal_pos, 1.0)
                 return
             else:
                 # move towards ball
@@ -423,8 +427,8 @@ class Agent:
                     self.wm.ah.dash(65)
                 else:
                     # face ball
-                    # self.wm.ah.turn(self.wm.ball.direction / 2)
-                    self.wm.ah.turn(self.ball_to_turn(self.wm.ball.direction, self.decodes))
+                    self.wm.ah.turn(self.wm.ball.direction / 2)
+                    #self.wm.ah.turn(self.ball_to_turn(self.wm.ball.direction, self.decodes))
 
                 return
 
