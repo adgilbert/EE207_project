@@ -93,7 +93,7 @@ class Agent(object):
         decodes = sim.data[ensB_p]
         return decodes
 
-    def init_opp_network():
+    def init_opp_network(self):
         # Use the following in your simulation
         T = 1.               # duration of simulation
         tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
@@ -415,7 +415,7 @@ class Agent(object):
         elif self.wm.is_dead_ball_us():
             if self.wm.uniform_number == 1:
                 if self.wm.ball is not None and self.wm.abs_body_dir is not None:
-                    self.kick_spot = self.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+                    self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
                     if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
                         self.wm.ah.dash(65) # move toward kick spot
                         return
@@ -436,11 +436,11 @@ class Agent(object):
         else:
             # find the ball
             if self.wm.ball is not None and self.wm.abs_body_dir is not None:
-                self.kick_spot = self.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+                self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
                 if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
                     # Make sure we are turned toward ball
                     if abs(self.wm.get_angle_to_point(self.kick_spot)) > 7:
-                        self.wh.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
+                        self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
                     # Run towards it
                     else:
                         self.wm.ah.dash(65) # move toward kick spot

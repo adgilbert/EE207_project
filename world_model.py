@@ -296,10 +296,9 @@ class WorldModel:
         return a
 
     def get_point(self, angle, distance):
-        point = (0, 0)
-        point[0] = self.abs_coords[0] + distance*np.cos(math.radians(self.angle))
-        point[1] = self.abs_coords[1] + distance*np.sin(math.radians(self.angle))
-        return point
+        point_x = self.abs_coords[0] + distance*np.cos(math.radians(self.angle))
+        point_y = self.abs_coords[1] + distance*np.sin(math.radians(self.angle))
+        return (point_x, point_y)
 
     def process_new_info(self, ball, flags, goals, players, lines):
         """
@@ -419,10 +418,9 @@ class WorldModel:
         """
 
         norm = self.euclidean_distance(kickto, ball)    
-        runto = (0, 0)
-        runto[0] = ball[0] - self.server_parameters.kickable_margin*(goal[0]-ball[0])/(2*norm)
-        runto[1] = ball[1] - self.server_parameters.kickable_margin*(goal[1]-ball[1])/(2*norm)
-        return runto
+        runto_x = ball[0] - self.server_parameters.kickable_margin*(kickto[0]-ball[0])/(2*norm)
+        runto_y = ball[1] - self.server_parameters.kickable_margin*(kickto[1]-ball[1])/(2*norm)
+        return (runto_x, runto_y)
 
     def is_ball_kickable(self):
         """
