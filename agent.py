@@ -396,7 +396,7 @@ class Agent(object):
         # kick off!
         if self.wm.is_before_kick_off():
             # player 9 takes the kick off
-            if self.wm.uniform_number == 1:
+            if self.wm.uniform_number < 5:
                 print('Attempting kick off')
                 if self.wm.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
@@ -420,7 +420,7 @@ class Agent(object):
                 print('waiting for kickoff')
                 return
         elif self.wm.is_dead_ball_us():
-            if self.wm.uniform_number == 1:
+            if self.wm.uniform_number < 5:
                 print('taking free kick')
                 if self.wm.ball is not None and self.wm.abs_body_dir is not None:
                     self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
