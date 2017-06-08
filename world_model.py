@@ -520,7 +520,12 @@ class WorldModel:
 
         # calculate absolute direction to point
         # subtract from absolute body direction to get relative angle
-        return self.abs_body_dir - self.angle_between_points(self.abs_coords, point)
+        angle = self.abs_body_dir - self.angle_between_points(self.abs_coords, point)
+        if angle > 180:
+            angle -= 360
+        if angle < -180:
+            angle += 360
+        return angle
 
 
     def turn_body_to_point(self, point):
