@@ -533,15 +533,17 @@ class Agent(object):
 
             # kick it at the enemy goal
             if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
-                goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
-                distances, angles = self.wm.get_enemies()
-                enemy_angle = 0
-                for d, a in zip(distances, angles):
-                    enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
-                kick_angle = .8*goal_angle + .2*enemy_angle
+                try:
+                    goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
+                    distances, angles = self.wm.get_enemies()
+                    enemy_angle = 0
+                    for d, a in zip(distances, angles):
+                        enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
+                    kick_angle = .8*goal_angle + .2*enemy_angle
 
-                self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
-                # self.wm.kick_to(self.goal_pos, 1.0)
+                    self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
+                except:
+                    self.wm.kick_to(self.goal_pos, 1.0)
                 return
             else:
                 # move towards ball
@@ -550,7 +552,7 @@ class Agent(object):
                 else:
                     # face ball
                     # self.wm.ah.turn(self.wm.ball.direction / 2)
-                    self.wm.ah.turn(self.ball_to_turn(self.wm.ball.direction, self.decodes))
+                    self.wm.ah.turn(self.ball_to_turn(self.wm.ball.direction, self.decodes)/2.0)
 
                 return
 
