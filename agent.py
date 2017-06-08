@@ -395,6 +395,7 @@ class Agent(object):
         if self.wm.is_before_kick_off():
             # player 9 takes the kick off
             if self.wm.uniform_number == 1:
+                print('Attempting kick off')
                 if self.wm.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
                     self.wm.kick_to(self.goal_pos, 1.0)
@@ -408,12 +409,17 @@ class Agent(object):
                             self.wm.turn_body_to_point((0, 0))
 
                 # turn to ball if we can see it, else face the enemy goal
-                if self.wm.ball is not None:
-                    self.wm.turn_neck_to_object(self.wm.ball)
+                # if self.wm.ball is not None:
+                #     self.wm.turn_neck_to_object(self.wm.ball)
 
+                return
+            else:
+                pass
+                print('waiting for kickoff')
                 return
         elif self.wm.is_dead_ball_us():
             if self.wm.uniform_number == 1:
+                print('taking free kick')
                 if self.wm.ball is not None and self.wm.abs_body_dir is not None:
                     self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
                     if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
@@ -427,31 +433,39 @@ class Agent(object):
                         self.wm.kick_to(self.goal_pos, 1.0)
                 else:
                     self.wm.ah.turn(30)
+                return
             # elif self.playertype == 'off':
             else: 
                 pass # do nothing for now
+                print('waiting for free kick')
+                return
 
 
         # attack!
         else:
             # find the ball
-            if self.wm.ball is not None and self.wm.abs_body_dir is not None:
+            if self.wm.ball is not None and self.wm.abs_coords is not None:
                 self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
                 if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
                     # Make sure we are turned toward ball
-                    if abs(self.wm.get_angle_to_point(self.kick_spot)) > 7:
+                    if abs(self.wm.get_angle_to_point(self.kick_spot)) > 15:
+                        print('turning toward ball. current angle: {}'.format(self.wm.get_angle_to_point(self.kick_spot)))
                         self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
                     # Run towards it
                     else:
+                        print('running to ball')
                         self.wm.ah.dash(65) # move toward kick spot
                     return
 
-                elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
+                elif abs(self.get_angle_to_point(self.enemy_goal_pos)) > 7:
+                    print('turning to goal')
                     self.wm.turn_body_to_point(self.enemy_goal_pos)
 
                 else: # all set, kick to goal
+                    print('kicking at goal')
                     self.wm.kick_to(self.goal_pos, 1.0)
             else:
+                print('ball or body_dir is none. ball: {}, body: {}'.format(self.wm.ball, self.wm.abs_coords))
                 self.wm.ah.turn(30)
             # if self.wm.ball is None or self.wm.ball.direction is None:
             #     self.wm.ah.turn(30)
