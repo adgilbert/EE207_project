@@ -9,26 +9,13 @@ import sp_exceptions
 import handler
 from world_model import WorldModel
 
-# nengo stuff
-import numpy as np
-import time
-from numpy.linalg import svd, norm, pinv
-import nengo
-from numpy import pi
-
-
-class Agent(object):
-
-    def __init__(self, playertype='off'):
-        '''
-        playertype is one of 'off', 'def', 'goalie'
-        '''
+class Agent:
+    def __init__(self):
         # whether we're connected to a server yet or not
         self.__connected = False
 
         # set all variables and important objects to appropriate values for
         # pre-connect state.
-
 
         # the socket used to communicate with the server
         self.__sock = None
@@ -49,83 +36,6 @@ class Agent(object):
 
         # whether we should send commands
         self.__send_commands = False
-
-        # adding goal post markers
-        self.enemy_goal_pos = None
-        self.own_goal_pos = None
-        self.last_action = None
-        self.last_balldir = None
-        self.angle_to_goal = None
-
-        self.decodes = self.init_turn_network()
-        self.en_decodes = self.init_opp_network()
-
-        if playertype in ['off', 'def', 'goalie']:
-            self.playertype = playertype
-        else:
-            print('player type must be one of off, def, goalie')
-            return
-
-    def init_turn_network(self):
-        # Use the following in your simulation
-        T = 1.               # duration of simulation
-        tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
-        in_fun = lambda t: t # input function to your network
-        N = 500  # Number of neurons in each Ensemble
-
-        model = nengo.Network()
-        with model:
-            stim = nengo.Node(in_fun)
-            ensA = nengo.Ensemble(N, dimensions=1)
-            ensB = nengo.Ensemble(N, dimensions=1)
-            
-            nengo.Connection(stim, ensA)
-            nengo.Connection(ensA, ensB, function=lambda x: 0.5*np.sin(pi*x))
-            
-            stim_p = nengo.Probe(stim)
-            ensA_p = nengo.Probe(ensA, synapse=.01)
-            ensB_p = nengo.Probe(ensB, synapse=.01)
-            ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
-            ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
-        sim = nengo.Simulator(model, dt=.001)
-        sim.run(T, progress_bar=False)
-         
-        decodes = sim.data[ensB_p]
-        return decodes
-
-    def init_opp_network(self):
-        # Use the following in your simulation
-        T = 1.               # duration of simulation
-        tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
-        in_fun = lambda t: t # input function to your network
-        N = 500  # Number of neurons in each Ensemble
-
-        model = nengo.Network()
-        with model:
-            stim = nengo.Node(in_fun)
-            ensA = nengo.Ensemble(N, dimensions=1)
-            ensB = nengo.Ensemble(N, dimensions=1)
-            
-            nengo.Connection(stim, ensA)
-            nengo.Connection(ensA, ensB, function=lambda x: 0.5*np.sin(pi*x))
-            
-            stim_p = nengo.Probe(stim)
-            ensA_p = nengo.Probe(ensA, synapse=.01)
-            ensB_p = nengo.Probe(ensB, synapse=.01)
-            ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
-            ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
-   
-        sim = nengo.Simulator(model, dt=.001)
-        sim.run(T, progress_bar=False)
-         
-        decodes = sim.data[ensB_p]
-        return 0.5 - decodes
-
-    def ball_to_turn(self, angle, decodes):
-        ''' interpolate decodes to the correct value'''
-
-        angle_idx =  int(angle*1000/360)
-        return decodes[angle_idx]*360
 
     def connect(self, host, port, teamname, version=11):
         """
@@ -214,9 +124,11 @@ class Agent(object):
         Tell the loop threads to stop and signal the server that we're
         disconnecting, then join the loop threads and destroy all our inner
         methods.
+
         Since the message loop thread can conceiveably block indefinitely while
         waiting for the server to respond, we only allow it (and the think loop
         for good measure) a short time to finish before simply giving up.
+
         Once an agent has been disconnected, it is 'dead' and cannot be used
         again.  All of its methods get replaced by a method that raises an
         exception every time it is called.
@@ -249,6 +161,7 @@ class Agent(object):
     def __message_loop(self):
         """
         Handles messages received from the server.
+
         This SHOULD NOT be called externally, since it's used as a threaded loop
         internally by this object.  Calling it externally is a BAD THING!
         """
@@ -273,6 +186,7 @@ class Agent(object):
         """
         Performs world model analysis and sends appropriate commands to the
         server to allow the agent to participate in the current game.
+
         Like the message loop, this SHOULD NOT be called externally.  Use the
         play method to start play, and the disconnect method to end it.
         """
@@ -319,88 +233,52 @@ class Agent(object):
         # take places on the field by uniform number
         if not self.in_kick_off_formation:
 
-            # determine the enemy goal position
-            if self.wm.side == WorldModel.SIDE_R:
-                self.goal_pos = (-55, 0)
-                self.enemy_goal_pos = self.goal_pos # duplicate var
-                self.own_goal_pos = (55, 0)
-                self.kick_spot = (.5, 0)
-            else:
-                self.goal_pos = (55, 0)
-                self.enemy_goal_pos = self.goal_pos
-                self.own_goal_pos = (-55, 0)
-                self.kick_spot = (-.5, 0) # add default kick spot
-
             # used to flip x coords for other side
             side_mod = 1
             if self.wm.side == WorldModel.SIDE_R:
                 side_mod = -1
 
             if self.wm.uniform_number == 1:
-                self.post = (-5*side_mod, 30)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-5 * side_mod, 30))
             elif self.wm.uniform_number == 2:
-                self.post = (-40*side_mod, 15)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-40 * side_mod, 15))
             elif self.wm.uniform_number == 3:
-                self.post = (-40*side_mod, 00)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-40 * side_mod, 00))
             elif self.wm.uniform_number == 4:
-                self.post = (-40*side_mod, -15)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-40 * side_mod, -15))
             elif self.wm.uniform_number == 5:
-                self.post = (-5*side_mod, -30)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-5 * side_mod, -30))
             elif self.wm.uniform_number == 6:
-                self.post = (-20*side_mod, 20)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-20 * side_mod, 20))
             elif self.wm.uniform_number == 7:
-                self.post = (-20*side_mod, 0)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-20 * side_mod, 0))
             elif self.wm.uniform_number == 8:
-                self.post = (-20*side_mod, -20)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-20 * side_mod, -20))
             elif self.wm.uniform_number == 9:
-                self.post = (-10*side_mod, 0)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-10 * side_mod, 0))
             elif self.wm.uniform_number == 10:
-                self.post = (-10*side_mod, 20)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-10 * side_mod, 20))
             elif self.wm.uniform_number == 11:
-                self.post = (-10*side_mod, 20)
-                self.current_pos = self.post
-                self.wm.teleport_to_point(self.post)
+                self.wm.teleport_to_point((-10 * side_mod, -20))
 
             self.in_kick_off_formation = True
 
-
             return
 
-#        if self.wm.abs_coords is not None and self.goal_pos is not None:
- #           self.angle_to_goal = self.wm.angle_between_points(self.goal_pos, self.wm.abs_coords)
-        if self.wm.abs_body_dir is not None and self.goal_pos is not None:
-                self.angle_to_goal = self.wm.get_angle_to_point(self.goal_pos)
-        # if self.p != (0, 0):
-        #     self.current_pos = self.p
+        # determine the enemy goal position
+        goal_pos = None
+        if self.wm.side == WorldModel.SIDE_R:
+            goal_pos = (-55, 0)
+        else:
+            goal_pos = (55, 0)
 
         # kick off!
         if self.wm.is_before_kick_off():
             # player 9 takes the kick off
-            if self.wm.uniform_number < 5:
-                print('Attempting kick off')
+            if self.wm.uniform_number == 9:
                 if self.wm.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
-                    self.wm.kick_to(self.goal_pos, 1.0)
+                    self.wm.kick_to(goal_pos, 1.0)
                 else:
                     # move towards ball
                     if self.wm.ball is not None:
@@ -411,137 +289,22 @@ class Agent(object):
                             self.wm.turn_body_to_point((0, 0))
 
                 # turn to ball if we can see it, else face the enemy goal
-                # if self.wm.ball is not None:
-                #     self.wm.turn_neck_to_object(self.wm.ball)
+                if self.wm.ball is not None:
+                    self.wm.turn_neck_to_object(self.wm.ball)
 
                 return
-            else:
-                pass
-                print('waiting for kickoff')
-                return
-        elif self.wm.is_dead_ball_us():
-            if self.wm.uniform_number < 5:
-                print('taking free kick')
-                if self.wm.ball is not None and self.wm.abs_body_dir is not None:
-                    self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
-                    if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
-                        self.wm.ah.dash(65) # move toward kick spot
-                        return
-
-                    elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
-                        self.wm.turn_body_to_point(self.enemy_goal_pos)
-
-                    else: # all set, kick to goal
-                        self.wm.kick_to(self.goal_pos, 1.0)
-                else:
-                    self.wm.ah.turn(30)
-                return
-            # elif self.playertype == 'off':
-            else: 
-                pass # do nothing for now
-                print('waiting for free kick')
-                return
-
 
         # attack!
         else:
             # find the ball
-            # if self.wm.ball is not None and self.wm.abs_coords is not None:
-            # try: 
-            #     if self.wm.ball is None or self.wm.abs_coords is None or self.wm.ball.direction is None:
-            #         print('ball or body_dir is none. ball: {}, body: {}, balldir: {}'.format(self.wm.ball, self.wm.abs_coords, self.wm.ball.direction))
-            #         self.wm.ah.turn(30)
-            #         return
-            #     else: # assume we have all the information
-            #         try:
-            #             print('UNI: {}, ball: '.format(self.wm.uniform_number, self.wm.ball.direction))
-            #             self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
-            #         except:
-            #             pass # use whatever kick spot was before
-            #         if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
-            #             print('current coordinates: {}'.format(self.wm.abs_coords))
-            #             # Make sure we are turned toward ball
-            #             # if abs(self.wm.ball.direction) > 15:
-            #             if abs(self.wm.get_angle_to_point(self.kick_spot)) > 15:
-            #                 print('kick_spot = {}. turning toward ball. current angle: {}'.format(self.kick_spot, self.wm.get_angle_to_point(self.kick_spot)))
-            #                 # self.wm.ah.turn(self.wm.ball.direction/2.0)   #self.wm.get_angle_to_point(self.kick_)/2.0)
-            #                 self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
-            #             # Run towards it
-            #             else:
-            #                 print('running to ball')
-            #                 self.wm.ah.dash(65) # move toward kick spot
-            #             return
-
-            #         elif abs(self.wm.get_angle_to_point(self.enemy_goal_pos)) > 7:
-            #             print('turning to goal')
-            #             self.wm.turn_body_to_point(self.enemy_goal_pos)
-            #             return
-
-            #             else: # all set, kick to goal
-            #                 print('kicking at goal')
-            #                 self.wm.kick_to(self.goal_pos, 1.0)
-            #                 return
-            # except Exception as inst:
-            #     print type(inst)     # the exception instance
-            #     print inst.args      # arguments stored in .args
-            #     print inst           # __str__ allows args to be printed directly
-            #     print "exceptions thrown, using fallback"
-            #     self.wm.ah.turn(30)
-            # except(TypeError):
-            #     print('type error. self')
-            #     self.wm.ah.turn(30)
-            #     except(TypeError):
-            #         print('ball direction does not exist')
-            #         if self.wm.ball is None or self.wm.ball.direction is None:
-            #             self.wm.ah.turn(30)
-
-            #             return
-
-            #         # kick it at the enemy goal
-            #         if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
-            #             goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
-            #             distances, angles = self.wm.get_enemies()
-            #             enemy_angle = 0
-            #             for d, a in zip(distances, angles):
-            #                 enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
-            #             kick_angle = .8*goal_angle + .2*enemy_angle
-
-            #             self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
-            #             # self.wm.kick_to(self.goal_pos, 1.0)
-            #             return
-            #         else:
-            #             # move towards ball
-            #             if -7 <= self.wm.ball.direction <= 7:
-            #                 self.wm.ah.dash(65)
-            #             else:
-            #                 # face ball
-            #                 # self.wm.ah.turn(self.wm.ball.direction / 2)
-            #                 self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
-
-            #             return
-
-            # else:
-            #     print('ball or body_dir is none. ball: {}, body: {}'.format(self.wm.ball, self.wm.abs_coords))
-            #     self.wm.ah.turn(30)
-            #     return
-            
-
             if self.wm.ball is None or self.wm.ball.direction is None:
                 self.wm.ah.turn(30)
 
                 return
 
             # kick it at the enemy goal
-            if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
-                goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
-                distances, angles = self.wm.get_enemies()
-                enemy_angle = 0
-                for d, a in zip(distances, angles):
-                    enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
-                kick_angle = .8*goal_angle + .2*enemy_angle
-
-                self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
-                # self.wm.kick_to(self.goal_pos, 1.0)
+            if self.wm.is_ball_kickable():
+                self.wm.kick_to(goal_pos, 1.0)
                 return
             else:
                 # move towards ball
@@ -549,10 +312,10 @@ class Agent(object):
                     self.wm.ah.dash(65)
                 else:
                     # face ball
-                    # self.wm.ah.turn(self.wm.ball.direction / 2)
-                    self.wm.ah.turn(self.ball_to_turn(self.wm.ball.direction, self.decodes))
+                    self.wm.ah.turn(self.wm.ball.direction / 2)
 
                 return
+
 
 if __name__ == "__main__":
     import sys
