@@ -1,6 +1,6 @@
 import math
 import random
-
+import numpy as np
 import message_parser
 import sp_exceptions
 import game_object
