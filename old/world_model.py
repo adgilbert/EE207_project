@@ -5,8 +5,6 @@ import message_parser
 import sp_exceptions
 import game_object
 
-
-
 class WorldModel:
     """
     Holds and updates the model of the world as known from current and past
@@ -81,6 +79,7 @@ class WorldModel:
         # these variables store all objects for any particular game step
         self.ball = None
         self.flags = []
+        self.flag_dict = None
         self.goals = []
         self.players = []
         self.lines = []
@@ -296,6 +295,11 @@ class WorldModel:
 
         return a
 
+    def get_point(self, angle, distance):
+        point_x = self.abs_coords[0] + distance*np.cos(math.radians(self.angle))
+        point_y = self.abs_coords[1] + distance*np.sin(math.radians(self.angle))
+        return (point_x, point_y)
+
     def process_new_info(self, ball, flags, goals, players, lines):
         """
         Update any internal variables based on the currently available
@@ -310,11 +314,13 @@ class WorldModel:
         self.players = players
         self.lines = lines
 
+
         # TODO: make all triangulate_* calculations more accurate
 
         # update the apparent coordinates of the player based on all flag pairs
         flag_dict = game_object.Flag.FLAG_COORDS
         self.abs_coords = self.triangulate_position(self.flags, flag_dict)
+        self.flag_dict = flag_dict
 
         # set the neck and body absolute directions based on flag directions
         self.abs_neck_dir = self.triangulate_direction(self.flags, flag_dict)
@@ -330,6 +336,7 @@ class WorldModel:
         Tells us whether it's play time
         """
         return self.play_mode == WorldModel.PlayModes.PLAY_ON or self.play_mode == WorldModel.PlayModes.KICK_OFF_L or self.play_mode == WorldModel.PlayModes.KICK_OFF_R or self.play_mode == WorldModel.PlayModes.KICK_IN_L or self.play_mode == WorldModel.PlayModes.KICK_IN_R or self.play_mode == WorldModel.PlayModes.FREE_KICK_L or self.play_mode == WorldModel.PlayModes.FREE_KICK_R or self.play_mode == WorldModel.PlayModes.CORNER_KICK_L or self.play_mode == WorldModel.PlayModes.CORNER_KICK_R or self.play_mode == WorldModel.PlayModes.GOAL_KICK_L or self.play_mode == WorldModel.PlayModes.GOAL_KICK_R or self.play_mode == WorldModel.PlayModes.DROP_BALL or self.play_mode == WorldModel.PlayModes.OFFSIDE_L or self.play_mode == WorldModel.PlayModes.OFFSIDE_R
+
 
     def is_before_kick_off(self):
         """
@@ -401,7 +408,6 @@ class WorldModel:
             return free_left
         else:
             return free_right
-
     def find_best_kick_spot(self, kickto, ball):
         """
         extrapolates a vector to find the best spot to kick the ball towards the opposing goal. 
@@ -596,7 +602,35 @@ class WorldModel:
         nearest = min(distances)[1]
         return nearest
 
-   # Keng-added
+        # Keng-added
+    def get_nearest_teammate(self):
+        """
+        Returns the teammate player closest to self.
+        """
+
+        # holds tuples of (player dist to point, player)
+        distances = []
+        # print "checking from get_nearest_teammate"
+        # print "selfside", self.side
+        for p in self.players:
+            # print p.side
+            # print p.side == self.side
+            # skip enemy and unknwon players
+            if p.side == self.side:
+                # find their absolute position
+                p_coords = self.get_object_absolute_coords(p)
+
+                distances.append((self.get_distance_to_point(p_coords), p))
+
+        # print "finally", distances
+        # return the nearest known teammate to the given point
+        try:
+            nearest = min(distances)[1]
+            return nearest
+        except:
+            return None
+
+    # Keng-added
     def get_nearest_enemy(self):
         """
         Returns the enemy player closest to self.
@@ -764,7 +798,7 @@ class ServerParameters:
         self.keepaway = 0
         self.keepaway_length = 20
         self.keepaway_log_dated = 1
-        self.keepaway_log_dir = './'
+        self.keepaway_log_dir = './logs/'
         self.keepaway_log_fixed = 0
         self.keepaway_log_fixed_name = 'rcssserver'
         self.keepaway_logging = 1
