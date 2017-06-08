@@ -539,7 +539,10 @@ class WorldModel:
 
         # subtract from absolute body direction to get relative angle
         relative_dir = self.abs_body_dir - abs_point_dir
-
+        if relative_dir > 180: 
+                relative_dir -= 360
+        if relative_dir < -180:
+                relative_dir += 360
         # turn to that angle
         self.ah.turn(relative_dir)
 
