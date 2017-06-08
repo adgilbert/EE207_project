@@ -1,9 +1,11 @@
 import math
 import random
-
+import numpy as np
 import message_parser
 import sp_exceptions
 import game_object
+
+
 
 class WorldModel:
     """
@@ -323,6 +325,12 @@ class WorldModel:
         else:
             self.abs_body_dir = None
 
+    def is_playon(self):
+        """
+        Tells us whether it's play time
+        """
+        return self.play_mode == WorldModel.PlayModes.PLAY_ON or self.play_mode == WorldModel.PlayModes.KICK_OFF_L or self.play_mode == WorldModel.PlayModes.KICK_OFF_R or self.play_mode == WorldModel.PlayModes.KICK_IN_L or self.play_mode == WorldModel.PlayModes.KICK_IN_R or self.play_mode == WorldModel.PlayModes.FREE_KICK_L or self.play_mode == WorldModel.PlayModes.FREE_KICK_R or self.play_mode == WorldModel.PlayModes.CORNER_KICK_L or self.play_mode == WorldModel.PlayModes.CORNER_KICK_R or self.play_mode == WorldModel.PlayModes.GOAL_KICK_L or self.play_mode == WorldModel.PlayModes.GOAL_KICK_R or self.play_mode == WorldModel.PlayModes.DROP_BALL or self.play_mode == WorldModel.PlayModes.OFFSIDE_L or self.play_mode == WorldModel.PlayModes.OFFSIDE_R
+
     def is_before_kick_off(self):
         """
         Tells us whether the game is in a pre-kickoff state.
@@ -368,6 +376,45 @@ class WorldModel:
             return free_right
         else:
             return free_left
+
+    def is_dead_ball_us(self):
+        """
+        Returns whether the ball is in the other team's posession and it's a
+        free kick, corner kick, or kick in.
+        """
+
+        # shorthand for verbose constants
+        kil = WorldModel.PlayModes.KICK_IN_L
+        kir = WorldModel.PlayModes.KICK_IN_R
+        fkl = WorldModel.PlayModes.FREE_KICK_L
+        fkr = WorldModel.PlayModes.FREE_KICK_R
+        ckl = WorldModel.PlayModes.CORNER_KICK_L
+        ckr = WorldModel.PlayModes.CORNER_KICK_R
+
+        # shorthand for whether left team or right team is free to act
+        pm = self.play_mode
+        free_left = (pm == kil or pm == fkl or pm == ckl)
+        free_right = (pm == kir or pm == fkr or pm == ckr)
+
+        # return whether the opposing side is in a dead ball situation
+        if self.side == WorldModel.SIDE_L:
+            return free_left
+        else:
+            return free_right
+
+    def find_best_kick_spot(self, kickto, ball):
+        """
+        extrapolates a vector to find the best spot to kick the ball towards the opposing goal. 
+        kickto: a tuple of the coordinates to kick to
+        ball: a tuple of coordinate ball coordinates
+        both of these must exist
+
+        """
+
+        norm = self.euclidean_distance(kickto, ball)    
+        runto_x = ball[0] - self.server_parameters.kickable_margin*(kickto[0]-ball[0])/(2*norm)
+        runto_y = ball[1] - self.server_parameters.kickable_margin*(kickto[1]-ball[1])/(2*norm)
+        return (runto_x, runto_y)
 
     def is_ball_kickable(self):
         """
@@ -534,6 +581,82 @@ class WorldModel:
         # return the nearest known teammate to the given point
         nearest = min(distances)[1]
         return nearest
+
+   # Keng-added
+    def get_nearest_enemy(self):
+        """
+        Returns the enemy player closest to self.
+        """
+
+        # holds tuples of (player dist to point, player)
+        distances = []
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side != self.side:
+                # find their absolute position
+                p_coords = self.get_object_absolute_coords(p)
+                distances.append((self.get_distance_to_point(p_coords), p))
+
+        # return the nearest known teammate to the given point
+        try:
+            nearest = min(distances)[1]
+            return nearest
+        except:
+            return None
+
+                # Keng-added
+    def get_enemies(self):
+        """
+        Returns the enemy player closest to self.
+        """
+
+        # holds tuples of (player dist to point, player)
+        distances = []
+        angles = []
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side != self.side:
+                # find their absolute position
+                p_coords = self.get_object_absolute_coords(p)
+                angles.append(self.get_angle_to_point(p_coords))
+                distances.append(self.get_distance_to_point(p_coords))
+
+                # distances.append((self.get_distance_to_point(p_coords), p))
+
+        # return the nearest known teammate to the given point
+        return distances, angles
+
+    # Keng-added
+    def is_ball_owned_by_us(self):
+        """
+        Returns if the ball is in possession by our team.
+        """
+
+        # holds tuples of (player dist to point, player)
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side == self.side and self.euclidean_distance(self.get_object_absolute_coords(self.ball), self.get_object_absolute_coords(p)) < self.server_parameters.kickable_margin:
+                return True
+            else:
+                continue
+
+        return False
+
+    # Keng-added
+    def is_ball_owned_by_enemy(self):
+        """
+        Returns if the ball is in possession by the enemy team.
+        """
+
+        # holds tuples of (player dist to point, player)
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side != self.side and self.euclidean_distance(self.get_object_absolute_coords(self.ball), self.get_object_absolute_coords(p)) < self.server_parameters.kickable_margin:
+                return True
+            else:
+                continue
+
+        return False
 
     def get_stamina(self):
         """
