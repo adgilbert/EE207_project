@@ -447,78 +447,78 @@ class Agent(object):
         else:
             # find the ball
             # if self.wm.ball is not None and self.wm.abs_coords is not None:
-            try: 
-                if self.wm.ball is None or self.wm.abs_coords is None or self.wm.ball.direction is None:
-                    print('ball or body_dir is none. ball: {}, body: {}, balldir: {}'.format(self.wm.ball, self.wm.abs_coords, self.wm.ball.direction))
-                    self.wm.ah.turn(30)
-                    return
-                else: # assume we have all the information
-                    try:
-                        print('UNI: {}, ball: '.format(self.wm.uniform_number, self.wm.ball.direction))
-                        self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
-                    except:
-                        pass # use whatever kick spot was before
-                    if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
-                        print('current coordinates: {}'.format(self.wm.abs_coords))
-                        # Make sure we are turned toward ball
-                        # if abs(self.wm.ball.direction) > 15:
-                        if abs(self.wm.get_angle_to_point(self.kick_spot)) > 15:
-                            print('kick_spot = {}. turning toward ball. current angle: {}'.format(self.kick_spot, self.wm.get_angle_to_point(self.kick_spot)))
-                            # self.wm.ah.turn(self.wm.ball.direction/2.0)   #self.wm.get_angle_to_point(self.kick_)/2.0)
-                            self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
-                        # Run towards it
-                        else:
-                            print('running to ball')
-                            self.wm.ah.dash(65) # move toward kick spot
-                        return
+            # try: 
+            #     if self.wm.ball is None or self.wm.abs_coords is None or self.wm.ball.direction is None:
+            #         print('ball or body_dir is none. ball: {}, body: {}, balldir: {}'.format(self.wm.ball, self.wm.abs_coords, self.wm.ball.direction))
+            #         self.wm.ah.turn(30)
+            #         return
+            #     else: # assume we have all the information
+            #         try:
+            #             print('UNI: {}, ball: '.format(self.wm.uniform_number, self.wm.ball.direction))
+            #             self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+            #         except:
+            #             pass # use whatever kick spot was before
+            #         if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
+            #             print('current coordinates: {}'.format(self.wm.abs_coords))
+            #             # Make sure we are turned toward ball
+            #             # if abs(self.wm.ball.direction) > 15:
+            #             if abs(self.wm.get_angle_to_point(self.kick_spot)) > 15:
+            #                 print('kick_spot = {}. turning toward ball. current angle: {}'.format(self.kick_spot, self.wm.get_angle_to_point(self.kick_spot)))
+            #                 # self.wm.ah.turn(self.wm.ball.direction/2.0)   #self.wm.get_angle_to_point(self.kick_)/2.0)
+            #                 self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
+            #             # Run towards it
+            #             else:
+            #                 print('running to ball')
+            #                 self.wm.ah.dash(65) # move toward kick spot
+            #             return
 
-                    elif abs(self.wm.get_angle_to_point(self.enemy_goal_pos)) > 7:
-                        print('turning to goal')
-                        self.wm.turn_body_to_point(self.enemy_goal_pos)
-                        return
+            #         elif abs(self.wm.get_angle_to_point(self.enemy_goal_pos)) > 7:
+            #             print('turning to goal')
+            #             self.wm.turn_body_to_point(self.enemy_goal_pos)
+            #             return
 
-                        else: # all set, kick to goal
-                            print('kicking at goal')
-                            self.wm.kick_to(self.goal_pos, 1.0)
-                            return
-            except Exception as inst:
-                print type(inst)     # the exception instance
-                print inst.args      # arguments stored in .args
-                print inst           # __str__ allows args to be printed directly
-                print "exceptions thrown, using fallback"
-                self.wm.ah.turn(30)
+            #             else: # all set, kick to goal
+            #                 print('kicking at goal')
+            #                 self.wm.kick_to(self.goal_pos, 1.0)
+            #                 return
+            # except Exception as inst:
+            #     print type(inst)     # the exception instance
+            #     print inst.args      # arguments stored in .args
+            #     print inst           # __str__ allows args to be printed directly
+            #     print "exceptions thrown, using fallback"
+            #     self.wm.ah.turn(30)
             # except(TypeError):
             #     print('type error. self')
             #     self.wm.ah.turn(30)
-                # except(TypeError):
-                    # print('ball direction does not exist')
-                    # if self.wm.ball is None or self.wm.ball.direction is None:
-                    #     self.wm.ah.turn(30)
+            #     except(TypeError):
+            #         print('ball direction does not exist')
+            #         if self.wm.ball is None or self.wm.ball.direction is None:
+            #             self.wm.ah.turn(30)
 
-                    #     return
+            #             return
 
-                    # # kick it at the enemy goal
-                    # if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
-                    #     goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
-                    #     distances, angles = self.wm.get_enemies()
-                    #     enemy_angle = 0
-                    #     for d, a in zip(distances, angles):
-                    #         enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
-                    #     kick_angle = .8*goal_angle + .2*enemy_angle
+            #         # kick it at the enemy goal
+            #         if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
+            #             goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
+            #             distances, angles = self.wm.get_enemies()
+            #             enemy_angle = 0
+            #             for d, a in zip(distances, angles):
+            #                 enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
+            #             kick_angle = .8*goal_angle + .2*enemy_angle
 
-                    #     self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
-                    #     # self.wm.kick_to(self.goal_pos, 1.0)
-                    #     return
-                    # else:
-                    #     # move towards ball
-                    #     if -7 <= self.wm.ball.direction <= 7:
-                    #         self.wm.ah.dash(65)
-                    #     else:
-                    #         # face ball
-                    #         # self.wm.ah.turn(self.wm.ball.direction / 2)
-                    #         self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
+            #             self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
+            #             # self.wm.kick_to(self.goal_pos, 1.0)
+            #             return
+            #         else:
+            #             # move towards ball
+            #             if -7 <= self.wm.ball.direction <= 7:
+            #                 self.wm.ah.dash(65)
+            #             else:
+            #                 # face ball
+            #                 # self.wm.ah.turn(self.wm.ball.direction / 2)
+            #                 self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
 
-                    #     return
+            #             return
 
             # else:
             #     print('ball or body_dir is none. ball: {}, body: {}'.format(self.wm.ball, self.wm.abs_coords))
@@ -526,33 +526,33 @@ class Agent(object):
             #     return
             
 
-            # if self.wm.ball is None or self.wm.ball.direction is None:
-            #     self.wm.ah.turn(30)
+            if self.wm.ball is None or self.wm.ball.direction is None:
+                self.wm.ah.turn(30)
 
-            #     return
+                return
 
-            # # kick it at the enemy goal
-            # if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
-            #     goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
-            #     distances, angles = self.wm.get_enemies()
-            #     enemy_angle = 0
-            #     for d, a in zip(distances, angles):
-            #         enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
-            #     kick_angle = .8*goal_angle + .2*enemy_angle
+            # kick it at the enemy goal
+            if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
+                goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
+                distances, angles = self.wm.get_enemies()
+                enemy_angle = 0
+                for d, a in zip(distances, angles):
+                    enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
+                kick_angle = .8*goal_angle + .2*enemy_angle
 
-            #     self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
-            #     # self.wm.kick_to(self.goal_pos, 1.0)
-            #     return
-            # else:
-            #     # move towards ball
-            #     if -7 <= self.wm.ball.direction <= 7:
-            #         self.wm.ah.dash(65)
-            #     else:
-            #         # face ball
-            #         # self.wm.ah.turn(self.wm.ball.direction / 2)
-            #         self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
+                self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
+                # self.wm.kick_to(self.goal_pos, 1.0)
+                return
+            else:
+                # move towards ball
+                if -7 <= self.wm.ball.direction <= 7:
+                    self.wm.ah.dash(65)
+                else:
+                    # face ball
+                    # self.wm.ah.turn(self.wm.ball.direction / 2)
+                    self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
 
-                # return
+                return
 
 if __name__ == "__main__":
     import sys
