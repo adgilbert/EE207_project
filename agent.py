@@ -445,12 +445,13 @@ class Agent(object):
         else:
             # find the ball
             if self.wm.ball is not None and self.wm.abs_coords is not None:
+                print('UNI: {}'.format(self.wm.uniform_number))
                 self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
                 if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
                     # Make sure we are turned toward ball
-                    if abs(self.wm.get_angle_to_point(self.kick_spot)) > 15:
+                    if abs(self.wm.ball.direction) > 15:
                         print('kick_spot = {}. turning toward ball. current angle: {}'.format(self.kick_spot, self.wm.get_angle_to_point(self.kick_spot)))
-                        self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
+                        self.wm.ah.turn(self.wm.ball.direction/2.0)   #self.wm.get_angle_to_point(self.kick_)/2.0)
                     # Run towards it
                     else:
                         print('running to ball')
