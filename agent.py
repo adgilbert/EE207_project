@@ -58,6 +58,7 @@ class Agent(object):
         self.angle_to_goal = None
 
         self.decodes = self.init_turn_network()
+        self.en_decodes = self.init_opp_network()
 
         if playertype in ['off', 'def', 'goalie']:
             self.playertype = playertype
@@ -86,12 +87,39 @@ class Agent(object):
             ensB_p = nengo.Probe(ensB, synapse=.01)
             ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
             ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
-   
         sim = nengo.Simulator(model, dt=.001)
         sim.run(T, progress_bar=False)
          
         decodes = sim.data[ensB_p]
         return decodes
+
+    def init_opp_network():
+        # Use the following in your simulation
+        T = 1.               # duration of simulation
+        tau_ens_probe = .01  # Use this as the synapse parameter when creating Probes of Ensembles
+        in_fun = lambda t: t # input function to your network
+        N = 500  # Number of neurons in each Ensemble
+
+        model = nengo.Network()
+        with model:
+            stim = nengo.Node(in_fun)
+            ensA = nengo.Ensemble(N, dimensions=1)
+            ensB = nengo.Ensemble(N, dimensions=1)
+            
+            nengo.Connection(stim, ensA)
+            nengo.Connection(ensA, ensB, function=lambda x: 0.5*np.sin(pi*x))
+            
+            stim_p = nengo.Probe(stim)
+            ensA_p = nengo.Probe(ensA, synapse=.01)
+            ensB_p = nengo.Probe(ensB, synapse=.01)
+            ensA_spikes_p = nengo.Probe(ensA.neurons, 'spikes')
+            ensB_spikes_p = nengo.Probe(ensB.neurons, 'spikes')
+   
+        sim = nengo.Simulator(model, dt=.001)
+        sim.run(T, progress_bar=False)
+         
+        decodes = sim.data[ensB_p]
+        return 0.5 - decodes
 
     def ball_to_turn(self, angle, decodes):
         ''' interpolate decodes to the correct value'''
@@ -366,7 +394,7 @@ class Agent(object):
         # kick off!
         if self.wm.is_before_kick_off():
             # player 9 takes the kick off
-            if self.wm.uniform_number == 9:
+            if self.wm.uniform_number == 1:
                 if self.wm.is_ball_kickable():
                     # kick with 100% extra effort at enemy goal
                     self.wm.kick_to(self.goal_pos, 1.0)
@@ -385,7 +413,7 @@ class Agent(object):
 
                 return
         elif self.wm.is_dead_ball_us():
-            if self.wm.uniform_number == 9:
+            if self.wm.uniform_number == 1:
                 if self.wm.ball is not None and self.wm.abs_body_dir is not None:
                     self.kick_spot = self.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
                     if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
@@ -407,22 +435,49 @@ class Agent(object):
         # attack!
         else:
             # find the ball
-            if self.wm.ball is None or self.wm.ball.direction is None:
-                self.wm.ah.turn(30)
+            if self.wm.ball is not None and self.wm.abs_body_dir is not None:
+                self.kick_spot = self.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+                if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
+                    # Make sure we are turned toward ball
+                    if abs(self.wm.get_angle_to_point(self.kick_spot)) > 7:
+                        self.wh.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
+                    # Run towards it
+                    else:
+                        self.wm.ah.dash(65) # move toward kick spot
+                    return
 
-                return
+                elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
+                    self.wm.turn_body_to_point(self.enemy_goal_pos)
 
-            # kick it at the enemy goal
-            if self.wm.is_ball_kickable():
-                self.wm.kick_to(self.goal_pos, 1.0)
-                return
+                else: # all set, kick to goal
+                    self.wm.kick_to(self.goal_pos, 1.0)
             else:
-                # move towards ball
-                if -7 <= self.wm.ball.direction <= 7:
-                    self.wm.ah.dash(65)
-                else:
-                    # face ball
-                    self.wm.ah.turn(self.wm.ball.direction / 2)
+                self.wm.ah.turn(30)
+            # if self.wm.ball is None or self.wm.ball.direction is None:
+            #     self.wm.ah.turn(30)
+
+            #     return
+
+            # # kick it at the enemy goal
+            # if self.wm.is_ball_kickable() and self.angle_to_goal is not None:
+            #     goal_angle, goal_dist  = self.ball_to_turn(self.angle_to_goal, self.decodes), self.wm.get_distance_to_point(self.enemy_goal_pos)
+            #     distances, angles = self.wm.get_enemies()
+            #     enemy_angle = 0
+            #     for d, a in zip(distances, angles):
+            #         enemy_angle += self.ball_to_turn(a, self.en_decodes)/d # weight angles by distance players are 
+            #     kick_angle = .8*goal_angle + .2*enemy_angle
+
+            #     self.wm.kick_to(self.wm.get_point(kick_angle, goal_dist), 1.0)
+            #     # self.wm.kick_to(self.goal_pos, 1.0)
+            #     return
+            # else:
+            #     # move towards ball
+            #     if -7 <= self.wm.ball.direction <= 7:
+            #         self.wm.ah.dash(65)
+            #     else:
+            #         # face ball
+            #         # self.wm.ah.turn(self.wm.ball.direction / 2)
+            #         self.wm.ah.turn(self.ball_to_turn(self.ball.direction, self.decodes))
 
                 return
 

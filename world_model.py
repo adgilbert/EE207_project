@@ -295,6 +295,11 @@ class WorldModel:
 
         return a
 
+    def get_point(self, angle, distance):
+        point = (0, 0)
+        point[0] = self.abs_coords[0] + distance*np.cos(math.radians(self.angle))
+        point[1] = self.abs_coords[1] + distance*np.sin(math.radians(self.angle))
+        return point
 
     def process_new_info(self, ball, flags, goals, players, lines):
         """
@@ -637,7 +642,6 @@ class WorldModel:
             if p.side != self.side:
                 # find their absolute position
                 p_coords = self.get_object_absolute_coords(p)
-
                 distances.append((self.get_distance_to_point(p_coords), p))
 
         # return the nearest known teammate to the given point
@@ -646,6 +650,28 @@ class WorldModel:
             return nearest
         except:
             return None
+
+                # Keng-added
+    def get_enemies(self):
+        """
+        Returns the enemy player closest to self.
+        """
+
+        # holds tuples of (player dist to point, player)
+        distances = []
+        angles = []
+        for p in self.players:
+            # skip enemy and unknwon players
+            if p.side != self.side:
+                # find their absolute position
+                p_coords = self.get_object_absolute_coords(p)
+                angles.append(self.get_angle_to_point(p_coords))
+                distances.append(self.get_distance_to_point(p_coords))
+
+                # distances.append((self.get_distance_to_point(p_coords), p))
+
+        # return the nearest known teammate to the given point
+        return distances, angles
 
     # Keng-added
     def is_ball_owned_by_us(self):
@@ -771,7 +797,7 @@ class ServerParameters:
         self.keepaway = 0
         self.keepaway_length = 20
         self.keepaway_log_dated = 1
-        self.keepaway_log_dir = './'
+        self.keepaway_log_dir = './logs/'
         self.keepaway_log_fixed = 0
         self.keepaway_log_fixed_name = 'rcssserver'
         self.keepaway_logging = 1
