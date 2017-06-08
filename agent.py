@@ -419,33 +419,33 @@ class Agent(object):
                 pass
                 print('waiting for kickoff')
                 return
-        elif self.wm.is_dead_ball_us():
-            if self.wm.ball is None or self.wm.ball.direction is None:
-                self.wm.ah.turn(30)
-                return
-            else:
-                print('taking free kick')
-                if self.wm.ball is not None and self.wm.abs_body_dir is not None:
-                    self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
-                    if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
-                        if abs(self.wm.get_angle_to_point(self.kick_spot)) > 10:
-                            self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
-                        else:
-                            self.wm.ah.dash(65) # move toward kick spot
-                        return
+        # elif self.wm.is_dead_ball_us():
+        #     if self.wm.ball is None or self.wm.ball.direction is None:
+        #         self.wm.ah.turn(30)
+        #         return
+        #     else:
+        #         print('taking free kick')
+        #         if self.wm.ball is not None and self.wm.abs_body_dir is not None:
+        #             self.kick_spot = self.wm.find_best_kick_spot(self.goal_pos, self.wm.get_object_absolute_coords(self.wm.ball))
+        #             if self.wm.euclidean_distance(self.wm.abs_coords, self.kick_spot) > self.wm.server_parameters.kickable_margin/2.0:
+        #                 if abs(self.wm.get_angle_to_point(self.kick_spot)) > 10:
+        #                     self.wm.ah.turn(self.wm.get_angle_to_point(self.kick_spot)/2.0)
+        #                 else:
+        #                     self.wm.ah.dash(65) # move toward kick spot
+        #                 return
 
-                    elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
-                        self.wm.turn_body_to_point(self.enemy_goal_pos)
+        #             elif abs(self.wm.abs_body_dir - self.angle_to_goal) > 7:
+        #                 self.wm.turn_body_to_point(self.enemy_goal_pos)
 
-                    elif self.wm.is_ball_kickable(): # all set, kick to goal
-                        self.wm.kick_to(self.goal_pos, 1.0)
-                    elif abs(self.wm.ball.direction) > 10:
-                        self.wm.ah.turn(self.wm.ball.direction/2)
-                    else:
-                        self.wm.ah.dash(65)
-                else:
-                    self.wm.ah.turn(30)
-                return
+        #             elif self.wm.is_ball_kickable(): # all set, kick to goal
+        #                 self.wm.kick_to(self.goal_pos, 1.0)
+        #             elif abs(self.wm.ball.direction) > 10:
+        #                 self.wm.ah.turn(self.wm.ball.direction/2)
+        #             else:
+        #                 self.wm.ah.dash(65)
+        #         else:
+        #             self.wm.ah.turn(30)
+        #         return
             # elif self.playertype == 'off':
 
 
